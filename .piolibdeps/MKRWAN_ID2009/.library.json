@@ -1,0 +1,39 @@
+{
+    "name": "MKRWAN", 
+    "version": "1.0.10", 
+    "keywords": [
+        "communication"
+    ], 
+    "description": "Support library for MKR WAN 1300", 
+    "frameworks": [
+        "arduino"
+    ], 
+    "platforms": [
+        "atmelsam"
+    ], 
+    "authors": [
+        {
+            "email": "support@arduino.cc", 
+            "url": null, 
+            "maintainer": true, 
+            "name": "Arduino"
+        }
+    ], 
+    "repository": {
+        "type": "git", 
+        "url": "https://github.com/arduino-libraries/MKRWAN"
+    }, 
+    "homepage": "http://github.com/arduino-libraries/MKRWAN", 
+    "export": {
+        "include": null, 
+        "exclude": [
+            "extras", 
+            "docs", 
+            "tests", 
+            "test", 
+            "*.doxyfile", 
+            "*.pdf"
+        ]
+    }, 
+    "id": 2009
+}

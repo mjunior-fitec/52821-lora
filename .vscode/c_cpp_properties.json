@@ -1,0 +1,89 @@
+{
+    "configurations": [
+        {
+            "name": "!!! WARNING !!! AUTO-GENERATED FILE, PLEASE DO NOT MODIFY IT AND USE https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags"
+        },
+        {
+            "name": "Win32",
+            "includePath": [
+                "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/include",
+                "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/src",
+                "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/lib/lib_enddevice",
+                "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/lib/USB_host/src",
+                "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/lib/tempsens/src",
+                "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/.pio/libdeps/mkrwan1300/RTCZero_ID873/src",
+                "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/.pio/libdeps/mkrwan1300/FlashStorage_ID1192/src",
+                "C:/Users/mjunior/.platformio/packages/framework-arduinosam/cores/samd",
+                "C:/Users/mjunior/.platformio/packages/framework-arduinosam/system/samd/CMSIS/CMSIS/Include",
+                "C:/Users/mjunior/.platformio/packages/framework-arduinosam/system/samd/CMSIS-Atmel/CMSIS/Device/ATMEL",
+                "C:/Users/mjunior/.platformio/packages/framework-arduinosam/variants/mkrwan1300",
+                "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/lib/ChRt/src",
+                "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/.pio/libdeps/mkrwan1300/Arduino Low Power_ID1577/src",
+                "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/.pio/libdeps/mkrwan1300/ArduinoLog_ID1532",
+                "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/.pio/libdeps/mkrwan1300/MKRWAN_ID2009/src",
+                "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/.pio/libdeps/mkrwan1300/ZeroRegs_ID4466/src",
+                "C:/Users/mjunior/.platformio/packages/framework-arduinosam/libraries/__cores__/samd/HID",
+                "C:/Users/mjunior/.platformio/packages/framework-arduinosam/libraries/__cores__/samd/I2S/src",
+                "C:/Users/mjunior/.platformio/packages/framework-arduinosam/libraries/__cores__/samd/SAMD_AnalogCorrection/src",
+                "C:/Users/mjunior/.platformio/packages/framework-arduinosam/libraries/__cores__/samd/SAMD_BootloaderUpdater/src",
+                "C:/Users/mjunior/.platformio/packages/framework-arduinosam/libraries/__cores__/samd/SDU/src",
+                "C:/Users/mjunior/.platformio/packages/framework-arduinosam/libraries/__cores__/samd/SPI",
+                "C:/Users/mjunior/.platformio/packages/framework-arduinosam/libraries/__cores__/samd/USBHost/src",
+                "C:/Users/mjunior/.platformio/packages/framework-arduinosam/libraries/__cores__/samd/Wire",
+                "C:/Users/mjunior/.platformio/packages/tool-unity",
+                ""
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/include",
+                    "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/src",
+                    "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/lib/lib_enddevice",
+                    "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/lib/USB_host/src",
+                    "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/lib/tempsens/src",
+                    "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/.pio/libdeps/mkrwan1300/RTCZero_ID873/src",
+                    "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/.pio/libdeps/mkrwan1300/FlashStorage_ID1192/src",
+                    "C:/Users/mjunior/.platformio/packages/framework-arduinosam/cores/samd",
+                    "C:/Users/mjunior/.platformio/packages/framework-arduinosam/system/samd/CMSIS/CMSIS/Include",
+                    "C:/Users/mjunior/.platformio/packages/framework-arduinosam/system/samd/CMSIS-Atmel/CMSIS/Device/ATMEL",
+                    "C:/Users/mjunior/.platformio/packages/framework-arduinosam/variants/mkrwan1300",
+                    "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/lib/ChRt/src",
+                    "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/.pio/libdeps/mkrwan1300/Arduino Low Power_ID1577/src",
+                    "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/.pio/libdeps/mkrwan1300/ArduinoLog_ID1532",
+                    "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/.pio/libdeps/mkrwan1300/MKRWAN_ID2009/src",
+                    "c:/Users/mjunior/Desktop/52821-LORA/trunk/sw/src/end_device/MKR1300/.pio/libdeps/mkrwan1300/ZeroRegs_ID4466/src",
+                    "C:/Users/mjunior/.platformio/packages/framework-arduinosam/libraries/__cores__/samd/HID",
+                    "C:/Users/mjunior/.platformio/packages/framework-arduinosam/libraries/__cores__/samd/I2S/src",
+                    "C:/Users/mjunior/.platformio/packages/framework-arduinosam/libraries/__cores__/samd/SAMD_AnalogCorrection/src",
+                    "C:/Users/mjunior/.platformio/packages/framework-arduinosam/libraries/__cores__/samd/SAMD_BootloaderUpdater/src",
+                    "C:/Users/mjunior/.platformio/packages/framework-arduinosam/libraries/__cores__/samd/SDU/src",
+                    "C:/Users/mjunior/.platformio/packages/framework-arduinosam/libraries/__cores__/samd/SPI",
+                    "C:/Users/mjunior/.platformio/packages/framework-arduinosam/libraries/__cores__/samd/USBHost/src",
+                    "C:/Users/mjunior/.platformio/packages/framework-arduinosam/libraries/__cores__/samd/Wire",
+                    "C:/Users/mjunior/.platformio/packages/tool-unity",
+                    ""
+                ]
+            },
+            "defines": [
+                "PLATFORMIO=40003",
+                "ARDUINO_SAMD_MKRWAN1300",
+                "ARDUINO_ARCH_SAMD",
+                "__SAMD21G18A__",
+                "USE_ARDUINO_MKR_PIN_LAYOUT",
+                "F_CPU=48000000L",
+                "USBCON",
+                "ARDUINO=10805",
+                "USB_VID=0x2341",
+                "USB_PID=0x8053",
+                "USB_PRODUCT=\"Arduino MKR WAN 1300\"",
+                "USB_MANUFACTURER=\"Arduino\"",
+                ""
+            ],
+            "intelliSenseMode": "clang-x64",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "compilerPath": "\"C:/Users/mjunior/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-gcc.exe\" -mthumb -mcpu=cortex-m0plus"
+        }
+    ],
+    "version": 4
+}

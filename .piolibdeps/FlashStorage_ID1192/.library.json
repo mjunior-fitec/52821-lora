@@ -1,0 +1,46 @@
+{
+    "name": "FlashStorage", 
+    "version": "0.7.1", 
+    "keywords": [
+        "data", 
+        "storage"
+    ], 
+    "description": "The FlashStorage library aims to provide a convenient way to store and retrieve user's data using the non-volatile flash memory of microcontrollers.", 
+    "frameworks": [
+        "arduino"
+    ], 
+    "platforms": [
+        "atmelsam"
+    ], 
+    "authors": [
+        {
+            "email": null, 
+            "url": null, 
+            "maintainer": false, 
+            "name": "Various"
+        }, 
+        {
+            "email": "info@arduino.cc", 
+            "url": null, 
+            "maintainer": true, 
+            "name": "Arduino"
+        }
+    ], 
+    "repository": {
+        "type": "git", 
+        "url": "https://github.com/cmaglie/FlashStorage"
+    }, 
+    "homepage": null, 
+    "export": {
+        "include": null, 
+        "exclude": [
+            "extras", 
+            "docs", 
+            "tests", 
+            "test", 
+            "*.doxyfile", 
+            "*.pdf"
+        ]
+    }, 
+    "id": 1192
+}

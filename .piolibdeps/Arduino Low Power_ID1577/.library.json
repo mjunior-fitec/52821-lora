@@ -1,0 +1,46 @@
+{
+    "name": "Arduino Low Power", 
+    "version": "1.2.1", 
+    "keywords": [
+        "device", 
+        "control"
+    ], 
+    "description": "Power save primitives features for SAMD and nRF52 32bit boards", 
+    "frameworks": [
+        "arduino"
+    ], 
+    "platforms": [
+        "atmelsam"
+    ], 
+    "authors": [
+        {
+            "email": null, 
+            "url": null, 
+            "maintainer": false, 
+            "name": "Arduino"
+        }, 
+        {
+            "email": null, 
+            "url": null, 
+            "maintainer": true, 
+            "name": "Arduino LLC"
+        }
+    ], 
+    "repository": {
+        "type": "git", 
+        "url": "https://github.com/arduino-libraries/ArduinoLowPower"
+    }, 
+    "homepage": "http://arduino.cc/libraries/ArduinoLowPower", 
+    "export": {
+        "include": null, 
+        "exclude": [
+            "extras", 
+            "docs", 
+            "tests", 
+            "test", 
+            "*.doxyfile", 
+            "*.pdf"
+        ]
+    }, 
+    "id": 1577
+}

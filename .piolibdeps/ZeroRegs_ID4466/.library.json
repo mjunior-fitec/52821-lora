@@ -1,0 +1,40 @@
+{
+    "name": "ZeroRegs", 
+    "version": "0.2.3", 
+    "keywords": [
+        "device", 
+        "control"
+    ], 
+    "description": "Prints the low-level configuration registers for the Arduino Zero (and similar boards).", 
+    "frameworks": [
+        "arduino"
+    ], 
+    "platforms": [
+        "atmelsam"
+    ], 
+    "authors": [
+        {
+            "email": "drew@folta.net", 
+            "url": null, 
+            "maintainer": true, 
+            "name": "Drew Folta"
+        }
+    ], 
+    "repository": {
+        "type": "git", 
+        "url": "https://github.com/drewfish/arduino-ZeroRegs"
+    }, 
+    "homepage": null, 
+    "export": {
+        "include": null, 
+        "exclude": [
+            "extras", 
+            "docs", 
+            "tests", 
+            "test", 
+            "*.doxyfile", 
+            "*.pdf"
+        ]
+    }, 
+    "id": 4466
+}
