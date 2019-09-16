@@ -66,6 +66,7 @@ void SERCOM3_Handler()
 
 uint16_t bytesRecABNT;
 uint32_t tLastABNTSend;
+uint32_t tLastConectaLoRa;
 bool semCmd87 = false;
 bool LoRaOK = false;
 bool comunicouABNT = false;
@@ -85,7 +86,16 @@ char localAppKey[33] = SECRET_APP_KEY;
 
 void setup()
 {
+
+    // 'Tempo morto' na inicialização...
+    while (millis() < TEMPO_MORTO) ;
     initHW();
+
+    //#########
+    // Avaliar habilitacao de interrupcao para monitorar PWR_FAIL, geranfo um
+    // reset total do sistema.
+    //#########
+
 
 #   ifdef SEMLORA
     SerialDebug.println("Executando SEM LoRa!");
@@ -102,7 +112,7 @@ void setup()
         delay(500);
     }
 
-    //Sinaliza a inicializacao da placa
+    //Sinaliza a inicializacao do end device
     piscaLed(3, 600, 600);
 
     delay(1200);
@@ -136,13 +146,14 @@ void setup()
     adc_init();
 
     uint8_t senhaE430[11] = {"TAETEEEUGT"};
+    //uint8_t senhaCliente[11] = {"UJEUTETUGH"};
 
     memcpy(localKeys.senhaABNT, senhaE430, 10);
     savedKeys.write(localKeys);
     //#### Inicializa a senha para comunicacao com medidor!
 
     //Se nao receber acerto de RTC, envia solicitacao com t=[5 - 15]min)
-    horaSolicitaRTC = stepSolicitaRTC = 45; ///#### ///random(MILLIS_5MIN, MILLIS_15MIN);
+    horaSolicitaRTC = stepSolicitaRTC = random(MILLIS_5MIN, MILLIS_15MIN);
     ansi_tab5.solicitaRTC = true;
 
     // //-----
@@ -163,6 +174,8 @@ void setup()
 
     insereCmdABNT(LISTA_NORMAL, ID_CMD87);
     insereCmdABNT(LISTA_NORMAL, ID_CMDE2, CMD_LANDIS_DRP_DRC);
+
+    tLastConectaLoRa = millis();
     SerialDebug.println("FIM Setup!");
 
     //Inicializa medicao de temperatura
@@ -198,14 +211,17 @@ void loop()
         trataLoRa();
     else
     {
-        #ifdef SEM_CHMASK
-        LoRaOK = conectaLoRa(COLD_START);
-        #else
-        if (localKeys.sessao_ok != FLASH_VALID)
+        if ((millis() - tLastConectaLoRa) > TMIN_SEM_CONECTALORA)
+        {
+           #ifdef SEM_CHMASK
             LoRaOK = conectaLoRa(COLD_START);
-        else
-            LoRaOK = conectaLoRa(WARM_START);
-        #endif
+           #else
+            if (localKeys.sessao_ok != FLASH_VALID)
+                LoRaOK = conectaLoRa(COLD_START);
+            else
+                LoRaOK = conectaLoRa(WARM_START);
+           #endif
+        }
     }
     #else
     if (millis() > 35000)
@@ -240,7 +256,8 @@ void loop()
     // }
 
     trataSinalizacaoSucesso();
-    //SerialDebug.println("St: " + String(sinalizaStatus));
+    //SerialDebug.println("St: " + String(sinalizaStatus) +
+    //                 " Serial = " + String(portaSerial.interface));
     delay(50);
 } //loop()
 
@@ -581,13 +598,17 @@ void trataRespABNT(void)
             {
                 cmdAtrasado = buscaUltimoCmd();
                 //Nao envia novo CMD11 se receber erro de senha
-                if (cmdAtrasado.cmd != ID_CMD11)
+                if ((cmdAtrasado.cmd != ID_CMD11) &&
+                    (cmdAtrasado.cmd != ID_CMD13))
                 {
                     insereCmdABNT(LISTA_URGENTE, ID_CMD13);
                     insereCmdABNT(LISTA_URGENTE, ID_CMD11);
                 }
-                //else
-                    //senha incorreta ???
+                else //senha incorreta
+                {
+                    ansi_tab5.alarmes.senha_abnt = 1;
+                    insereTabelaANSI(TAB_ANSI05, SIZE_TABELA5_CMD40);
+                }
             }
         }
         break;
@@ -748,7 +769,8 @@ void initComissionamento(void)
     memset(&localKeys, 0, sizeof(localKeys));
     if (protocoloComissionamento())
     {
-        // Se foi comissionado, usa valores predefinidos para todos param
+        // Se acabou de ser comissionado,
+        // usa valores predefinidos para todos parametros
         t0_LoRa = random(NUM_SEG_DIA); //65;
         intervaloLoRa = 1;
         localKeys.seed = t0_LoRa;
@@ -768,6 +790,11 @@ bool conectaLoRa(startType_t tipo)
 #ifdef SEMLORA
     SerialDebug.println("Executando SEM LoRa!");
 #else
+    tLastConectaLoRa = millis();
+    // Interrompe a maq de estados ABNT e forca desconexao da porta serial.
+    stateABNT = ABNT_STATE_DISCONNECTED;
+    portaSerial.interface = SERIAL_NULL;
+
     SerialDebug.print("Start join... ");
     tipo ? SerialDebug.println("Warm !") : SerialDebug.println("COLD !");
 
@@ -775,6 +802,8 @@ bool conectaLoRa(startType_t tipo)
     uint8_t nInit = MAX_TENTATIVAS_INIT;
     bool joinLoRa = false;
     bool init = false;
+
+    modem.restart();
 
     while (nJoin--)
     {

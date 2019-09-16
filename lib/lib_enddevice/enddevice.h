@@ -46,8 +46,10 @@
 #define ABP_NWKSKEY     "8105c97abfe43b24f378376f7a1b8132"  //"a7cfa33b3d57d5524eefa45582d69915"
 #define ABP_APPSKEY     "91f5160e510f18500927b43883b96269"  //"3c005aa77471e1ea3376fa657c09dfe0"
 
-#define MIN_LORA_INTERVAL   250000L //milissegundos
-#define LORA_RESP_INTERVAL  1000
+#define MIN_LORA_INTERVAL       250000L //milissegundos
+#define LORA_RESP_INTERVAL      1000
+#define TEMPO_MORTO             5000
+#define TMIN_SEM_CONECTALORA    20000
 
 #define DEBUG_BAUD 9600
 

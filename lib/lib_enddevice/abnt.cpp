@@ -184,6 +184,7 @@ void abntInit(void)
  */
 void maqEstAbnt(void)
 {
+    //SerialDebug.println("maqEstAbnt()\r\n st= " + String(stateABNT));
     switch(stateABNT)
     {
         case ABNT_STATE_DISCONNECTED:
@@ -228,6 +229,7 @@ void maqEstAbnt(void)
  */
 uint8_t trataEstadoDisconnected(void)
 {
+    //SerialDebug.println("EstadoDisconnected()");
     uint8_t ret = ABNT_STATE_DISCONNECTED;
     identificaSerial();
     if (portaSerial.interface != SERIAL_NULL)
@@ -259,10 +261,13 @@ uint8_t trataEstadoDisconnected(void)
  */
 uint8_t trataEstadoIdle(void)
 {
+    //SerialDebug.println("EstadoIdle()");
     uint8_t ret = ABNT_STATE_IDLE;
 
     bytesRecSerialABNT = recvMsgMedidorABNT((abnt_resp_generic_t *) \
                                              buffABNTrecv);
+
+    //SerialDebug.println("Aft recvMsgMedidorABNT)");
     if (1 == bytesRecSerialABNT)
     {
         if (ABNT_ENQ == buffABNTrecv[0])
@@ -280,6 +285,7 @@ uint8_t trataEstadoIdle(void)
         ret = ABNT_STATE_ENVIA_CMD;
     }
 
+    //SerialDebug.println("Fim EstadoIdle()");
     return (ret);
 } //trataEstadoIdle(
 
@@ -444,10 +450,11 @@ int16_t recvMsgMedidorABNT(abnt_resp_generic_t *resp)
 
 int16_t recvMsgMedidorABNT(abnt_resp_generic_t *resp, uint16_t timeout)
 {
-    uint8_t err_rec, i;
+    //SerialDebug.println("recvMsgMedidorABNT()");
+    uint8_t err_rec;
     uint8_t bufferTmp[MAX_RECV];
     uint8_t *buffResp;
-    uint16_t bytesRec;
+    uint16_t bytesRec, i;
     uint32_t tStart;
     bool recebendo = false;
     bool respOk = false;
@@ -461,6 +468,13 @@ int16_t recvMsgMedidorABNT(abnt_resp_generic_t *resp, uint16_t timeout)
     bytesRec = MAX_RECV;
     err_rec = portaSerial.recMsgMedidor(&bytesRec, bufferTmp);
 
+    //###
+    //SerialDebug.println("Init err_rec= " + String(err_rec) + " bytes: " + String(bytesRec));
+    // SerialDebug.println("Buffer recebido:");
+    // for (uint16_t iBuf = 0; iBuf<bytesRec; iBuf++)
+    //     SerialDebug.println("  [" + String(iBuf) + "]: " + String(bufferTmp[iBuf], HEX));
+    // SerialDebug.println();
+
     while (!respOk)
     {
         if (((millis() - tStart)) > timeout)
@@ -472,6 +486,7 @@ int16_t recvMsgMedidorABNT(abnt_resp_generic_t *resp, uint16_t timeout)
 
         if (bytesRec)
         {
+            //SerialDebug.println("bRec= " + String(bytesRec));
             i = 0;
             if (!recebendo)
             {
@@ -489,10 +504,12 @@ int16_t recvMsgMedidorABNT(abnt_resp_generic_t *resp, uint16_t timeout)
                     }
                 }
                 recebendo = true;
+                //SerialDebug.println("RECEBENDO !!! <-----");
 
                 //Remove possiveis ENQs recebidos em sequência
                 if (ABNT_ENQ == bufferTmp[0])
                 {
+                    //SerialDebug.println("Removendo ENQs...");
                     for (i = 0; (i + 1) < bytesRec;)
                     {
                         if (ABNT_ENQ != bufferTmp[++i])
@@ -508,6 +525,10 @@ int16_t recvMsgMedidorABNT(abnt_resp_generic_t *resp, uint16_t timeout)
             //número de bytes a ser desprezado. Nos casos normais, sem
             //recebimento de ENQs, i será sempre 0.
             bytesRec -= i;
+
+            //###
+            //SerialDebug.println("By real: " + String(bytesRec));
+
             memcpy(buffResp, bufferTmp + i, bytesRec);
             //atualiza o ponteiro para receber o restante
             buffResp += bytesRec;
@@ -517,8 +538,16 @@ int16_t recvMsgMedidorABNT(abnt_resp_generic_t *resp, uint16_t timeout)
             if (bytesRecSerialABNT < LEN_RES)
             {
                 bytesRec = MAX_RECV;
-                delay (8);
+                delay(8);
                 err_rec = portaSerial.recMsgMedidor(&bytesRec, bufferTmp);
+
+                // //####
+                // SerialDebug.println("N err_rec= " + String(err_rec) + " bytes: " + String(bytesRec));
+                // SerialDebug.println("Buffer recebido:");
+                // for (uint16_t iBuf = 0; iBuf < bytesRec; iBuf++)
+                //     SerialDebug.println("  [" + String(iBuf) + "]: " + String(bufferTmp[iBuf], HEX));
+                // SerialDebug.println();
+                /////
             }
             else
             {
@@ -532,6 +561,13 @@ int16_t recvMsgMedidorABNT(abnt_resp_generic_t *resp, uint16_t timeout)
             bytesRec = MAX_RECV;
             delay(10);
             err_rec = portaSerial.recMsgMedidor(&bytesRec, bufferTmp);
+            //###
+            // SerialDebug.println("M err_rec= " + String(err_rec) + " bytes: " + String(bytesRec));
+            // SerialDebug.println("Buffer recebido:");
+            // for (uint16_t iBuf = 0; iBuf < bytesRec; iBuf++)
+            //     SerialDebug.println("  [" + String(iBuf) + "]: " + String(bufferTmp[iBuf], HEX));
+            // SerialDebug.println();
+            //////////
         }
     }
     return bytesRecSerialABNT;

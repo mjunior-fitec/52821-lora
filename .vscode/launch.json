@@ -12,7 +12,7 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug",
-            "executable": "c:/Users/mjunior/Desktop/LoRa/git/52821-lora/.pio/build/mkrwan1300/firmware.elf",
+            "executable": "c:/Users/mjunior/Desktop/LoRa/git/FONTES-52821-lora/.pio/build/mkrwan1300/firmware.elf",
             "toolchainBinDir": "C:/Users/mjunior/.platformio/packages/toolchain-gccarmnoneeabi/bin",
             "svdPath": "C:/Users/mjunior/.platformio/platforms/atmelsam/misc/svd/ATSAMD21G18A.svd",
             "preLaunchTask": {
@@ -25,7 +25,7 @@
             "type": "platformio-debug",
             "request": "launch",
             "name": "PIO Debug (skip Pre-Debug)",
-            "executable": "c:/Users/mjunior/Desktop/LoRa/git/52821-lora/.pio/build/mkrwan1300/firmware.elf",
+            "executable": "c:/Users/mjunior/Desktop/LoRa/git/FONTES-52821-lora/.pio/build/mkrwan1300/firmware.elf",
             "toolchainBinDir": "C:/Users/mjunior/.platformio/packages/toolchain-gccarmnoneeabi/bin",
             "svdPath": "C:/Users/mjunior/.platformio/platforms/atmelsam/misc/svd/ATSAMD21G18A.svd",
             "internalConsoleOptions": "openOnSessionStart"

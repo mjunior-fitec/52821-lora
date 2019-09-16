@@ -66,6 +66,10 @@ uint8_t recv_dataSerial(uint16_t *nBytes, uint8_t *buffPayload)
     uint16_t bytesRec = 0;
 
     *nBytes = Serial1.available(); //Forca a receber apenas o que tem disponivel
+    //Limita o tamanho do buffer a ser recebido
+    if (*nBytes > MAX_RECV)
+        *nBytes = MAX_RECV;
+
     if (*nBytes)
     {
         bytesRec = Serial1.readBytes(buffPayload, (size_t)(*nBytes));
