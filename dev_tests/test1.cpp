@@ -298,7 +298,7 @@ void loop()
 #include <cdcftdi.h>
 #include <usbhub.h>
 #include "abnt.h"
-#include "otica_tfdi.h"
+#include "otica_ftdi.h"
 
 #include "pgmstrings.h"
 
@@ -556,7 +556,7 @@ uint16_t calc_crc_16(uint8_t *buffer, uint16_t len)
 #include <usbhub.h>
 
 #include "abnt.h"
-#include "otica_tfdi.h"
+#include "otica_ftdi.h"
 #include "pgmstrings.h"
 
 #include <MKRWAN.h>
@@ -882,7 +882,7 @@ void loRaLoop (uint8_t *msg, uint8_t tam)
 #include <usbhub.h>
 
 #include "abnt.h"
-#include "otica_tfdi.h"
+#include "otica_ftdi.h"
 #include "pgmstrings.h"
 #include <MKRWAN.h>
 

@@ -23,7 +23,7 @@
 #ifdef TESTE_FIMAFIM
 
 #include "abnt.h"
-#include "otica_tfdi.h"
+#include "otica_ftdi.h"
 #include "serial_nativa.h"
 #include "pgmstrings.h"
 #include "ansi_fitec.h"

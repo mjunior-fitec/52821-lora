@@ -20,7 +20,7 @@
 #endif
 
 #include "abnt.h"
-#include "otica_tfdi.h"
+#include "otica_ftdi.h"
 #include "serial_nativa.h"
 #include "ansi_fitec.h"
 #include "util.h"

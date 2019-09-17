@@ -67,12 +67,14 @@
 
 #define TIMER_STSEMCOMUNIC      (1000)
 #define TIMER_STNCOMISSIONADO   (200)
+#define TIMER_STSEMACK          (150)
 #define TIMER_STSEMLORA         (150)
 #define TIMER_STSEMABNT         (150)
 #define TIMER_STNORMAL          (150)
 
 //Sinalizacao de instalacao com sucesso
 #define NUM_INV_INTERMITENTE    8
+#define NUM_INV_SEMACK          4
 #define NUM_SEG_SINALIZANORMAL  5
 
 //Quantidade de tentativas para Join e Init na rede LoRa

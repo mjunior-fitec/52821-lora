@@ -2,7 +2,7 @@
 #include <usbhub.h>
 
 #include "abnt.h"
-#include "otica_tfdi.h"
+#include "otica_ftdi.h"
 //#include "pgmstrings.h"
 
 /*-----------------------------------------*/

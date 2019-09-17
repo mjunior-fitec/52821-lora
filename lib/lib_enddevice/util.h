@@ -248,6 +248,7 @@ typedef enum
 {
     ST_NENHUM,
     ST_NCOMISSIONADO,
+    ST_AGUARDA_ACK,
     ST_SEMCOMUNIC,
     ST_SEMABNT,
     ST_SEMLORA,
@@ -280,6 +281,6 @@ void stringToBytes (uint8_t *pStream, std::string strIn);
 void piscaLed(uint8_t ciclos = 1, uint16_t t_on = 250, uint16_t t_off = 250);
 void segundosParaHHMMSS(uint32_t seg, uint8_t *hh, uint8_t *mm, uint8_t *ss);
 uint32_t hhmmssParaSegundos (uint8_t hh, uint8_t mm, uint8_t ss);
-uint8_t max3 (uint8_t n1, uint8_t n2, uint8_t n3);
+uint16_t max3 (uint16_t n1, uint16_t n2, uint16_t n3);
 
 #endif

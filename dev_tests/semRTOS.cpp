@@ -19,7 +19,7 @@
 #ifdef TEST_SEMRTOS
 
 #include "abnt.h"
-#include "otica_tfdi.h"
+#include "otica_ftdi.h"
 #include "serial_nativa.h"
 #include "pgmstrings.h"
 #include "ansi_fitec.h"
@@ -470,7 +470,7 @@ void SYSCTRL_Handler()
 #include <usbhub.h>
 
 #include "abnt.h"
-#include "otica_tfdi.h"
+#include "otica_ftdi.h"
 #include "pgmstrings.h"
 #include <MKRWAN.h>
 
@@ -779,7 +779,7 @@ void reboot(void)
 
 #include "serial_nativa.h"
 #include "abnt.h"
-#include "otica_tfdi.h"
+#include "otica_ftdi.h"
 
 #ifdef USB_DEBUG
 #  define SerialDebug Serial

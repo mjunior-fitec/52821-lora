@@ -365,7 +365,7 @@ typedef struct abnt_resp_leitura_param
     inicioPostosHorarios_t inicioPostosHorarios[3]; //Ponta, Fora, Reservado
     uint8_t naoUsado1[9];
     feriado_t feriados[15];
-    uint8_t naoUsado2[18];
+    uint8_t naoUsado2[18]; // <---- Constantes de multiplicacao
     uint8_t estadoBateria;
     uint16_t versaoSWMedidor;
     uint8_t naoUsado3[3];

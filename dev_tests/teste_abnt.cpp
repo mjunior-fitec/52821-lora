@@ -7,7 +7,7 @@
 #include <FlashStorage.h>
 
 #include "abnt.h"
-#include "otica_tfdi.h"
+#include "otica_ftdi.h"
 #include "pgmstrings.h"
 #include "ansi_fitec.h"
 

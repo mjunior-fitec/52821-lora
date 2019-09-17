@@ -246,7 +246,7 @@ uint32_t hhmmssParaSegundos(uint8_t hh, uint8_t mm, uint8_t ss)
 /**
 * @brief Funcao para definir o maior entre 3 numeros inteiros
 *
-* Esta funcao recebe 3 numeros inteiros (uint8) e retorna o maior deles
+* Esta funcao recebe 3 numeros inteiros (uint16) e retorna o maior deles
 *
 * @param[in] n1 primeiro numero
 * @param[in] n2 segundo numero
@@ -254,8 +254,8 @@ uint32_t hhmmssParaSegundos(uint8_t hh, uint8_t mm, uint8_t ss)
 * @return maior numero
 *
 ************************************************************************/
-uint8_t max3 (uint8_t n1, uint8_t n2, uint8_t n3)
+uint16_t max3 (uint16_t n1, uint16_t n2, uint16_t n3)
 {
-    uint8_t max = n1 > n2 ? (n1 > n3 ? n1 : n3) : (n2 > n3 ? n2 : n3);
+    uint16_t max = n1 > n2 ? (n1 > n3 ? n1 : n3) : (n2 > n3 ? n2 : n3);
     return max;
 } //max3 (

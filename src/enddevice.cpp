@@ -18,7 +18,7 @@
 #ifdef TESTE_INTEGRACAO
 
 #include "abnt.h"
-#include "otica_tfdi.h"
+#include "otica_ftdi.h"
 #include "serial_nativa.h"
 #include "ansi_fitec.h"
 #include "agenda.h"
@@ -50,6 +50,7 @@ void trataNovoIntervalo(void);
 void trataSinalizacaoSucesso(void);
 void maqEstSinalizacao(void);
 void trataSinalizacaoNComissionado(void);
+void trataSinalizacaoAguardaAck(void);
 void trataSinalizacaoSemComunic(void);
 void trataSinalizacaoSemLoRa(void);
 void trataSinalizacaoSemABNT(void);
@@ -817,6 +818,7 @@ bool conectaLoRa(startType_t tipo)
 
     if (joinLoRa)
     {
+        configuraSinalizacao(ST_AGUARDA_ACK, TIMER_STSEMACK);
         while (nInit--)
         {
             init = modem.initTransmit();
@@ -1083,6 +1085,10 @@ void maqEstSinalizacao(void)
         trataSinalizacaoNComissionado();
         break;
 
+    case ST_AGUARDA_ACK:
+        trataSinalizacaoAguardaAck();
+        break;
+
     case ST_SEMCOMUNIC:
         trataSinalizacaoSemComunic();
         break;
@@ -1114,6 +1120,22 @@ void trataSinalizacaoNComissionado()
 
     ledSinalizacao = !ledSinalizacao;
 } //trataSinalizacaoNComissionado(
+
+void trataSinalizacaoAguardaAck()
+{
+if (!contPulso)
+    {
+        inicializaSinalizacao(300);
+    }
+    digitalWrite(LED_BUILTIN, ledSinalizacao);
+    ledSinalizacao = !ledSinalizacao;
+    if (++contPulso > NUM_INV_SEMACK)
+    {
+        inicializaSinalizacao(1200);
+        ledSinalizacao = false;
+        contPulso = 0;
+    }
+}//trataSinalizacaoAguardaAck()
 
 void trataSinalizacaoSemComunic()
 {
@@ -1171,7 +1193,7 @@ void trataSinalizacaoOpNormal()
 #ifdef TESTE_FIMAFIM
 
 #include "abnt.h"
-#include "otica_tfdi.h"
+#include "otica_ftdi.h"
 #include "serial_nativa.h"
 #include "ansi_fitec.h"
 #include "wiring_private.h"
