@@ -828,7 +828,7 @@ bool conectaLoRa(startType_t tipo)
 
     if (init)
     {
-        updateTLoRaSend();
+        /*updateTLoRaSend();*/
         modem.dutyCycle(false);
         delay(300);
         SerialDebug.println("Transmissoes sincronizadas com ACK!");

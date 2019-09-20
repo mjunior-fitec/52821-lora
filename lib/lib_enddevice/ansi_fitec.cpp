@@ -264,9 +264,10 @@ void loRaSend(uint8_t *msg, uint8_t tam)
     int err;
 
     //###### DEBUG do envio LoRa
-    // for (auto i = 0; i < tam;  i++)
-    //     SerialDebug.println("[" + String(i) +"]: " + String(msg[i], HEX));
-    // SerialDebug.println();
+    SerialDebug.println("Vai enviar " + String(tam) + " bytes:");
+    for (auto i = 0; i < tam;  i++)
+        SerialDebug.println("[" + String(i) +"]: " + String(msg[i], HEX));
+    SerialDebug.println();
     //#######
 
     tLastLoRaSend = millis();
@@ -275,13 +276,17 @@ void loRaSend(uint8_t *msg, uint8_t tam)
     err = modem.endPacket(false);
 
     if (err > 0)
+    {
         piscaLed(2, 350, 100);
+   #ifdef DEBUG_LORA
+        SerialDebug.println("Envio LoRa !!! \tTab: " + String(tabelaAtual + 1)); //+1 pq foi ajustada pra usar como indice
+   #endif
+    }
     else
+    {
         piscaLed(4, 200, 100);
-
-#ifdef DEBUG_LORA
-    SerialDebug.println("Envio LoRa !!! \tTab: " + String(tabelaAtual+1));//+1 pq foi ajustada pra usar como indice
-#endif
+        SerialDebug.println("FALHA no envio!!!");
+    }
 } //loRaSend(
 
 int trataDownLink(void)
