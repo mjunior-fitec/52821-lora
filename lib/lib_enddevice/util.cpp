@@ -37,7 +37,8 @@ uint16_t CalcWeekDayNumFromDate(uint16_t y, uint16_t m, uint16_t d)
 {
     m = (m + 9) % 12;
     y -= m / 10;
-    uint16_t dn = 365 * y + y / 4 - y / 100 + y / 400 + (m * 306 + 5) / 10 + (d - 1);
+    uint16_t dn = 365 * y + y / 4 - y / 100 + y / 400 +
+                  (m * 306 + 5) / 10 + (d - 1);
 
     return (((dn + 3) % 7) + 1); //Para retornar DOM=1, SEG=2... SAB=7
 } //CalcWeekDayNumFromDate(

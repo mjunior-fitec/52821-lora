@@ -83,18 +83,22 @@
 
 typedef struct secret_keys
 {
-    uint8_t   comissionado;
-    uint8_t   sessao_ok;
-    uint32_t  seed;
-    uint8_t   intervalo;
-    uint32_t  numSerieMedidor;
-    uint16_t  modeloMedidor;
-    char      appeui[17];
-    char      appkey[33];
-    char      appskey[33];
-    char      nwkskey[33];
-    char      devaddr[9];
-    uint8_t senhaABNT[10];
+    uint8_t     comissionado;
+    uint8_t     sessao_ok;
+    uint8_t     senhaABNT_ok;
+    uint32_t    seed;
+    uint8_t     intervalo;
+    uint32_t    numSerieMedidor;
+    uint16_t    modeloMedidor;
+    //----- LOGs DE SANIDADE ---
+    sanidade_t  log_sanidade;
+    //--------------------------
+    char        appeui[17];
+    char        appkey[33];
+    char        appskey[33];
+    char        nwkskey[33];
+    char        devaddr[9];
+    uint8_t     senhaABNT[10];
 } __attribute__ ((packed)) secret_keys_t;
 
 extern secret_keys_t localKeys;

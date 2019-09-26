@@ -16,6 +16,7 @@
 
 #include <stdint.h>
 #include <RTCZero.h>
+#include <Adafruit_SleepyDog.h>
 
 #undef min
 #undef max
@@ -99,6 +100,8 @@ public:
             ret = getJoinStatus();
             if (ret)
                 return true;
+
+            Watchdog.reset();
             restart();
             delay(500);
             begin(AU915);
@@ -115,6 +118,7 @@ public:
             while ((millis() - tStart) < tEsperaAccept)
             {
                 delay(500);
+                Watchdog.reset();
                 if (getJoinStatus())
                     return true;
             }
@@ -146,6 +150,7 @@ public:
         auto tStart = millis();
         while ((millis() - tStart) < T_WAIT_ABP)
         {
+            Watchdog.reset();
             ret = getJoinStatus();
             if (ret)
                 return true;
@@ -164,6 +169,7 @@ public:
             return false;
         while (getACK < 0)
         {
+            Watchdog.reset();
             getACK = modemSend(&dummy, 1, true);
             if (!(maxRetry--))
                 return false;
@@ -268,6 +274,25 @@ typedef struct itemAgenda
                               (uint32_t)((l & 0x0000ff00U) <<  8) | \
                               (uint32_t)((l & 0x00ff0000U) >>  8) | \
                               (uint32_t)((l & 0xff000000U) >> 24)))
+
+typedef struct sanidade
+{
+    uint8_t     cont_POR;
+    uint8_t     cont_SWrst;
+    uint8_t     cont_WDT;
+    uint8_t     cont_EXTrst;
+    uint16_t    cont_up;
+    uint16_t    cont_dw;
+    uint8_t     uptime_rollMilli;
+    uint32_t    uptime_milli;
+    uint64_t    maxuptime :40;
+    uint64_t    ptLeituraABNT: 5;
+    uint64_t    ptEscritaABNT: 5;
+    uint64_t    ptLeituraLoRa: 5;
+    uint64_t    ptEscritaLoRa: 5;
+
+} __attribute__ ((packed)) sanidade_t;
+
 
 // Prototipos das funcoes exportadas
 uint16_t CalcWeekDayNumFromDate(uint16_t y, uint16_t m, uint16_t d);

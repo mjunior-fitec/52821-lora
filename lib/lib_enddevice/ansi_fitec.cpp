@@ -66,7 +66,7 @@ static const String AppSessionKey = ABP_APPSKEY;
 
 // Prototipos das funcoes locais
 uint8_t buscaTabelaANSI(void);
-void loRaSend(uint8_t *msg, uint8_t tam);
+void loRaSend(uint8_t *msg, uint8_t tam, bool ack = false);
 int trataDownLink(void);
 uint8_t calcSum(uint8_t *buffer, size_t bufSize);
 
@@ -259,21 +259,22 @@ void trataLoRa(void)
     }
 } //trataLoRa(
 
-void loRaSend(uint8_t *msg, uint8_t tam)
+void loRaSend(uint8_t *msg, uint8_t tam, bool ack)
 {
     int err;
 
     //###### DEBUG do envio LoRa
-    SerialDebug.println("Vai enviar " + String(tam) + " bytes:");
-    for (auto i = 0; i < tam;  i++)
-        SerialDebug.println("[" + String(i) +"]: " + String(msg[i], HEX));
-    SerialDebug.println();
+    // SerialDebug.println("Vai enviar " + String(tam) + " bytes:");
+    // for (auto i = 0; i < tam;  i++)
+    //     SerialDebug.println("[" + String(i) +"]: " + String(msg[i], HEX));
+    // SerialDebug.println();
     //#######
 
     tLastLoRaSend = millis();
     modem.beginPacket();
     modem.write(msg, tam);
-    err = modem.endPacket(false);
+    Watchdog.reset();
+    err = modem.endPacket(ack);
 
     if (err > 0)
     {
@@ -461,6 +462,7 @@ int trataDownLink(void)
             {
                 memcpy(localKeys.senhaABNT, tab12->senhaABNT,
                        sizeof(localKeys.senhaABNT));
+                localKeys.senhaABNT_ok = FLASH_VALID;
                 salvarNaoVolatil = true;
             }
             if (programacaoCorteReliga)

@@ -32,6 +32,7 @@
 #include <usbhub.h>
 #include <RTCZero.h>
 #include <FlashStorage.h>
+#include <Adafruit_SleepyDog.h>
 #include <time.h>
 
 bool protocoloComissionamento(void);
@@ -88,14 +89,26 @@ char localAppKey[33] = SECRET_APP_KEY;
 void setup()
 {
 
+    auto fonte_rst = PM->RCAUSE.reg;
+    //(PM->RCAUSE.reg & (PM_RCAUSE_SYST | PM_RCAUSE_WDT | PM_RCAUSE_EXT))) {
+
     // 'Tempo morto' na inicialização...
     while (millis() < TEMPO_MORTO) ;
     initHW();
 
     //#########
-    // Avaliar habilitacao de interrupcao para monitorar PWR_FAIL, geranfo um
+    // Avaliar habilitacao de interrupcao para monitorar PWR_FAIL, gerando um
     // reset total do sistema.
     //#########
+
+    SerialDebug.print("\r\n\r\n\r\n---------------------\r\nRCAUSE = 0x");
+    SerialDebug.println(fonte_rst, HEX);
+    if (fonte_rst & PM_RCAUSE_SYST)
+        SerialDebug.println("\r\n\r\n ----> RESET por Software !!! <------\r\n");
+    if (fonte_rst & PM_RCAUSE_WDT)
+        SerialDebug.println("\r\n\r\n ----> RESET por WDT !!! <------\r\n");
+    if (fonte_rst & PM_RCAUSE_EXT)
+        SerialDebug.println("\r\n\r\n ----> RESET Externo !!! <------\r\n");
 
 
 #   ifdef SEMLORA
@@ -146,11 +159,11 @@ void setup()
     //SerialDebug.println("Depois temp init");
     adc_init();
 
-    uint8_t senhaE430[11] = {"TAETEEEUGT"};
+    //uint8_t senhaE430[11] = {"TAETEEEUGT"};
     //uint8_t senhaCliente[11] = {"UJEUTETUGH"};
 
-    memcpy(localKeys.senhaABNT, senhaE430, 10);
-    savedKeys.write(localKeys);
+    // memcpy(localKeys.senhaABNT, senhaE430, 10);
+    // savedKeys.write(localKeys);
     //#### Inicializa a senha para comunicacao com medidor!
 
     //Se nao receber acerto de RTC, envia solicitacao com t=[5 - 15]min)
@@ -183,13 +196,8 @@ void setup()
     medeTemperatura();
     ansi_tab1.temperatura = localMaxTemp;
 
-    // char senhaGravada[11];
-    // for (uint8_t i = 0; i<10; i++)
-    //     senhaGravada[i] = localKeys.senhaABNT[i];
-    // senhaGravada[10] = 0;
-    // SerialDebug.println("senha ABNT 1: " + String(senhaGravada));
-    // SerialDebug.println();
-    // SerialDebug.flush();
+    int valorWDT = Watchdog.enable(16000);
+    SerialDebug.println("WDT On! T=" + String(valorWDT) + " ms\r\n\r\n");
 }
 
 void loop()
@@ -260,6 +268,7 @@ void loop()
     //SerialDebug.println("St: " + String(sinalizaStatus) +
     //                 " Serial = " + String(portaSerial.interface));
     delay(50);
+    Watchdog.reset();
 } //loop()
 
 void trataRespABNT(void)
@@ -599,8 +608,10 @@ void trataRespABNT(void)
             {
                 cmdAtrasado = buscaUltimoCmd();
                 //Nao envia novo CMD11 se receber erro de senha
-                if ((cmdAtrasado.cmd != ID_CMD11) &&
-                    (cmdAtrasado.cmd != ID_CMD13))
+                //ou se nao tem seeha programada
+                if ( (cmdAtrasado.cmd != ID_CMD11) &&
+                     (cmdAtrasado.cmd != ID_CMD13) &&
+                     (localKeys.senhaABNT_ok == FLASH_VALID) )
                 {
                     insereCmdABNT(LISTA_URGENTE, ID_CMD13);
                     insereCmdABNT(LISTA_URGENTE, ID_CMD11);
@@ -719,7 +730,7 @@ void trataRespABNT(void)
             break;
         }
 
-        ///// --- DEBUG
+        ///// --- DEBUG - Resposta recebida
         // for (uint16_t i = 0; i < 258; i++)
         // {
         //     SerialDebug.print(String(pBuffABNTrecv[i], HEX) + "\t");
@@ -808,6 +819,7 @@ bool conectaLoRa(startType_t tipo)
 
     while (nJoin--)
     {
+        Watchdog.reset();
         if (tipo == WARM_START)
             joinLoRa = modem.joinABP(localKeys.devaddr, localKeys.nwkskey,
                                      localKeys.appskey);
@@ -821,6 +833,7 @@ bool conectaLoRa(startType_t tipo)
         configuraSinalizacao(ST_AGUARDA_ACK, TIMER_STSEMACK);
         while (nInit--)
         {
+            Watchdog.reset();
             init = modem.initTransmit();
             delay(500);
         }
