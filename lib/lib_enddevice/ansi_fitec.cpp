@@ -167,6 +167,11 @@ uint8_t buscaTabelaANSI(void)
     tamEspecial = listaTabelasAEnviar[LISTA_PT(ptLeituraTabela)].tamEspecial;
     ret = listaTabelasAEnviar[LISTA_INC_PT(ptLeituraTabela)].idTabela;
     bloqPtANSI = false; //Libera acesso a lista
+
+    //--- log de sanidade
+    localKeys.log_sanidade.ptEscritaLoRa = ptEscritaTabela;
+    localKeys.log_sanidade.ptLeituraLoRa = ptLeituraTabela;
+
     return ret;
 } //buscaTabelaANSI(
 
@@ -203,8 +208,11 @@ void updateTLoRaSend(void)
     tLastLoRaSend = millis();
 }
 
-void trataLoRa(void)
+bool trataLoRa(void)
 {
+    if (!modem.isJoined())
+        return false;
+
     if ((millis() - tLastLoRaSend) > MIN_LORA_INTERVAL)
     {
         tabelaAtual = buscaTabelaANSI();
@@ -221,11 +229,10 @@ void trataLoRa(void)
             {
                 if (!ansi_tab5.solicitaRTC)
                 {
-// #               ifdef DEBUG_LORA
-//                     SerialDebug.println("\r\n ---Remove entrada de Tab5");
-//                     SerialDebug.flush();
-// #               endif
-                    return;
+// #             ifdef DEBUG_LORA
+//                   SerialDebug.println("\r\n ---Remove entrada de Tab5");
+// #             endif
+                    return true;
                 }
             }
             tabelaAtual--; //Ajusta para usar como indice do vetor de dados
@@ -257,6 +264,7 @@ void trataLoRa(void)
 #   endif
         piscaLed(3, 500, 100);
     }
+    return true;
 } //trataLoRa(
 
 void loRaSend(uint8_t *msg, uint8_t tam, bool ack)
@@ -281,12 +289,22 @@ void loRaSend(uint8_t *msg, uint8_t tam, bool ack)
         piscaLed(2, 350, 100);
    #ifdef DEBUG_LORA
         SerialDebug.println("Envio LoRa !!! \tTab: " + String(tabelaAtual + 1)); //+1 pq foi ajustada pra usar como indice
+        localKeys.log_sanidade.cont_up++;
    #endif
     }
     else
     {
+        //se falhou o envio, reinicia o modem!
+        modem.restart();
+        delay(500);
+        modem.begin(AU915);
+        delay(500);
+
         piscaLed(4, 200, 100);
+    #ifdef DEBUG_LORA
         SerialDebug.println("FALHA no envio!!!");
+    #endif
+
     }
 } //loRaSend(
 
@@ -317,6 +335,30 @@ int trataDownLink(void)
             SerialDebug.print(" ");
         }
         SerialDebug.println();
+        localKeys.log_sanidade.cont_dw++;
+
+        ///-----------------------------------------------------
+        //#### Debug do log de sanidade
+        //
+        SerialDebug.println("\r\n-------------------------\r\nLog de sanidade:");
+        SerialDebug.println("POR: " + String(localKeys.log_sanidade.cont_POR));
+        SerialDebug.println("SW: " + String(localKeys.log_sanidade.cont_SWrst));
+        SerialDebug.println("WDT: " + String(localKeys.log_sanidade.cont_WDT));
+        SerialDebug.println("Ext: " + String(localKeys.log_sanidade.cont_EXTrst));
+        SerialDebug.println("Stk Ovf: " + String(localKeys.log_sanidade.cont_StOvflw));
+        SerialDebug.println("Uplinks: " + String(localKeys.log_sanidade.cont_up));
+        SerialDebug.println("Dwlinks: " + String(localKeys.log_sanidade.cont_dw));
+        SerialDebug.println("Uptime roll: " + String(localKeys.log_sanidade.uptime_rollMilli));
+        SerialDebug.println("Uptime milli: " + String(localKeys.log_sanidade.uptime_milli));
+        SerialDebug.println("MaxUPtime: " + String((uint32_t)localKeys.log_sanidade.maxuptime));
+        SerialDebug.println("ptLeitABNT Urgente: " + String((uint8_t)localKeys.log_sanidade.ptLeituraABNTUrgente));
+        SerialDebug.println("ptEscrABNT URgente: " + String((uint8_t)localKeys.log_sanidade.ptEscritaABNTUrgente));
+        SerialDebug.println("ptLeitABNT: " + String((uint8_t)localKeys.log_sanidade.ptLeituraABNT));
+        SerialDebug.println("ptEscrABNT: " + String((uint8_t)localKeys.log_sanidade.ptEscritaABNT));
+        SerialDebug.println("ptLeitLoRa: " + String((uint8_t)localKeys.log_sanidade.ptLeituraLoRa));
+        SerialDebug.println("ptEscrLoRa: " + String((uint8_t)localKeys.log_sanidade.ptEscritaLoRa));
+        SerialDebug.println("\r\n------- Fim do Log de sanidade -------");
+        //------------------------------------------------------
 #endif
 
         switch (rcv[0])

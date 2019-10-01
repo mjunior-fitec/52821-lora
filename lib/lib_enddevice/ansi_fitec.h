@@ -25,7 +25,7 @@
 //Funcoes exportadas
 void ansiFitecInit(void);
 int8_t loRaSetup(void);
-void trataLoRa(void);
+bool trataLoRa(void);
 uint8_t calcSum(uint8_t *buffer, size_t bufSize);
 bool insereTabelaANSI(uint8_t IdTabela, uint8_t tam = 0);
 void updateTLoRaSend(void);
@@ -57,6 +57,7 @@ typedef struct alarmes
 {
     uint32_t falha_comunicacao: 1;
     uint32_t senha_abnt: 1;
+    uint32_t medidor_bloq: 1;
     uint32_t relogio_medidor: 1;
     uint32_t relogio_dispositivo: 1;
     uint32_t temperatura_dev: 1;

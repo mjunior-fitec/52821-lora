@@ -51,7 +51,10 @@
 #define ABNT_NACK   0x15
 #define ABNT_WAIT   0x10
 
+#define ABNT_OCORRENCIA41 (0x41)
 #define ABNT_OCORRENCIA43 (0x43)
+#define ABNT_OCORRENCIA45 (0x45)
+
 #define TAM_COD_INSTALACAO  14
 
 #define T_MAX_ENQ           600 //Tempo maximo entre ENQs consecutivos,

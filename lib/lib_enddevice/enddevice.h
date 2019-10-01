@@ -65,6 +65,7 @@
 #define T_MIN_MEDE_TEMP         (10000) //########(2000)
 #define TMAX_SEM_ABNT           (9000000L)
 
+//Sinalizacao de instalacao com sucesso
 #define TIMER_STSEMCOMUNIC      (1000)
 #define TIMER_STNCOMISSIONADO   (200)
 #define TIMER_STSEMACK          (150)
@@ -72,7 +73,6 @@
 #define TIMER_STSEMABNT         (150)
 #define TIMER_STNORMAL          (150)
 
-//Sinalizacao de instalacao com sucesso
 #define NUM_INV_INTERMITENTE    8
 #define NUM_INV_SEMACK          4
 #define NUM_SEG_SINALIZANORMAL  5
@@ -80,6 +80,27 @@
 //Quantidade de tentativas para Join e Init na rede LoRa
 #define MAX_TENTATIVAS_JOIN     2
 #define MAX_TENTATIVAS_INIT     30
+
+typedef struct sanidade
+{
+    uint8_t     cont_POR;               // 0
+    uint8_t     cont_SWrst;             // 1
+    uint8_t     cont_WDT;               // 2
+    uint8_t     cont_EXTrst;            // 3
+    uint8_t     cont_StOvflw;           // 4
+    uint16_t    cont_up;                // 5 - 6
+    uint16_t    cont_dw;                // 7 - 8
+    uint8_t     uptime_rollMilli;       // 9
+    uint32_t    uptime_milli;           // 10 - 13
+    uint64_t    maxuptime :40;          // 14 - 18
+    uint64_t    ptLeituraABNT :5;       // 19
+    uint64_t    ptEscritaABNT :5;       // 19 - 20
+    uint64_t    ptLeituraLoRa :5;       // 20
+    uint64_t    ptEscritaLoRa :5;       // 20 - 21
+    uint16_t    ptLeituraABNTUrgente: 5;// 22
+    uint16_t    ptEscritaABNTUrgente: 5;// 22 - 23
+
+} __attribute__ ((packed)) sanidade_t;
 
 typedef struct secret_keys
 {

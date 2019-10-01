@@ -35,5 +35,6 @@ void transmiteLoRaFrequente(void);
 void transmiteLoRaEventual(void);
 void preparaABNTFrequente(void);
 void preparaABNTEventual(void);
+void atualizaUptime(void);
 
 #endif

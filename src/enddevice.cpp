@@ -11,6 +11,14 @@
 *
 ************************************************************************/
 
+/*--------
+*
+*Alterar funcao de sendLoRa para enviar com ou sem solicitação de ACK
+*
+*--------*/
+
+
+
 #include "enddevice.h"
 #include "util.h"
 #include <Arduino.h>
@@ -48,6 +56,8 @@ void inicializaSinalizacao(uint32_t sampleRate,
 void configuraSinalizacao(sinalizaStatus_t status, uint32_t sampleRate,
                           tipoTimer_t tipo = TIMER_MILLIS);
 void trataNovoIntervalo(void);
+void trataCausaRst(uint8_t rcause_lido);
+void atualizaUptime(void);
 void trataSinalizacaoSucesso(void);
 void maqEstSinalizacao(void);
 void trataSinalizacaoNComissionado(void);
@@ -101,16 +111,6 @@ void setup()
     // reset total do sistema.
     //#########
 
-    SerialDebug.print("\r\n\r\n\r\n---------------------\r\nRCAUSE = 0x");
-    SerialDebug.println(fonte_rst, HEX);
-    if (fonte_rst & PM_RCAUSE_SYST)
-        SerialDebug.println("\r\n\r\n ----> RESET por Software !!! <------\r\n");
-    if (fonte_rst & PM_RCAUSE_WDT)
-        SerialDebug.println("\r\n\r\n ----> RESET por WDT !!! <------\r\n");
-    if (fonte_rst & PM_RCAUSE_EXT)
-        SerialDebug.println("\r\n\r\n ----> RESET Externo !!! <------\r\n");
-
-
 #   ifdef SEMLORA
     SerialDebug.println("Executando SEM LoRa!");
 #   else
@@ -136,6 +136,7 @@ void setup()
     //na memoria as chaves recebidas no comissionamento e os demais valores
     //zerados. Na situacao normal, tera os ultimos valores.
     localKeys = savedKeys.read();
+    trataCausaRst(fonte_rst);
     initAgenda();
 
     //SerialDebug.println("bfr Ansi INIT");
@@ -198,6 +199,27 @@ void setup()
 
     int valorWDT = Watchdog.enable(16000);
     SerialDebug.println("WDT On! T=" + String(valorWDT) + " ms\r\n\r\n");
+
+    //#### Debug do log de sanidade
+    //
+    SerialDebug.println("\r\nLog de sanidade:");
+    SerialDebug.println("POR: " + String(localKeys.log_sanidade.cont_POR));
+    SerialDebug.println("SW: " + String(localKeys.log_sanidade.cont_SWrst));
+    SerialDebug.println("WDT: " + String(localKeys.log_sanidade.cont_WDT));
+    SerialDebug.println("Ext: " + String(localKeys.log_sanidade.cont_EXTrst));
+    SerialDebug.println("Stk Ovf: " + String(localKeys.log_sanidade.cont_StOvflw));
+    SerialDebug.println("Uplinks: " + String(localKeys.log_sanidade.cont_up));
+    SerialDebug.println("Dwlinks: " + String(localKeys.log_sanidade.cont_dw));
+    SerialDebug.println("Uptime roll: " + String(localKeys.log_sanidade.uptime_rollMilli));
+    SerialDebug.println("Uptime milli: " + String(localKeys.log_sanidade.uptime_milli));
+    SerialDebug.println("MaxUPtime: " + String((uint32_t)localKeys.log_sanidade.maxuptime));
+    SerialDebug.println("ptLeitABNT Urgente: " + String((uint8_t)localKeys.log_sanidade.ptLeituraABNTUrgente));
+    SerialDebug.println("ptEscrABNT URgente: " + String((uint8_t)localKeys.log_sanidade.ptEscritaABNTUrgente));
+    SerialDebug.println("ptLeitABNT: " + String((uint8_t)localKeys.log_sanidade.ptLeituraABNT));
+    SerialDebug.println("ptEscrABNT: " + String((uint8_t)localKeys.log_sanidade.ptEscritaABNT));
+    SerialDebug.println("ptLeitLoRa: " + String((uint8_t)localKeys.log_sanidade.ptLeituraLoRa));
+    SerialDebug.println("ptEscrLoRa: " + String((uint8_t)localKeys.log_sanidade.ptEscritaLoRa));
+    SerialDebug.println("\r\n------- Fim do Log de sanidade -------");
 }
 
 void loop()
@@ -217,7 +239,14 @@ void loop()
 
     #ifndef SEMLORA
     if (LoRaOK)
-        trataLoRa();
+    {
+        if (!trataLoRa())
+        {
+            LoRaOK = false;
+            SerialDebug.println("\r\n  --->trataLoRa() retornou FALSE! <---");
+            SerialDebug.println("Vai iniciar novo JoinOTAA...\r\n");
+        }
+    }
     else
     {
         if ((millis() - tLastConectaLoRa) > TMIN_SEM_CONECTALORA)
@@ -268,6 +297,7 @@ void loop()
     //SerialDebug.println("St: " + String(sinalizaStatus) +
     //                 " Serial = " + String(portaSerial.interface));
     delay(50);
+    atualizaUptime();
     Watchdog.reset();
 } //loop()
 
@@ -589,11 +619,31 @@ void trataRespABNT(void)
             abnt_resp_generic_t *cmd40;
             cmd40 = (abnt_resp_generic_t *)buffRespRecebida;
 
-            /// ***** -- VERIFICAR O COMPORTAMENTO DESEJADO!!! --
-            if (ABNT_OCORRENCIA43 != cmd40->payload[0])
-            //Nao envia CMD37 para limpar ocorrencia, caso seja ocorrencia 43,
-            //indicando necessidade de abertura de sessao ou parametrizacao
-            //incompleta
+            //Caso seja ocorrencia 43, indicando necessidade de abertura
+            //de sessao ou parametrizacao incompleta
+            if (ABNT_OCORRENCIA43 == cmd40->payload[0] &&
+                (localKeys.senhaABNT_ok == FLASH_VALID))
+                 //Abre a sessao com senha e reenvia o mesmo comando
+            {
+                cmdAtrasado = buscaUltimoCmd();
+                insereCmdABNT(LISTA_URGENTE, ID_CMD13);
+                insereCmdABNT(LISTA_URGENTE, ID_CMD11);
+            }
+            else if (ABNT_OCORRENCIA41 == cmd40->payload[0]) //senha incorreta
+            {
+                ansi_tab5.alarmes.senha_abnt = 1;
+                insereTabelaANSI(TAB_ANSI05, SIZE_TABELA5_CMD40);
+                localKeys.senhaABNT_ok = 0;
+            }
+            else if (ABNT_OCORRENCIA45 == cmd40->payload[0])//medidor bloqueado
+            {
+                ansi_tab5.alarmes.medidor_bloq = 1;
+                insereTabelaANSI(TAB_ANSI05, SIZE_TABELA5_CMD40);
+                localKeys.senhaABNT_ok = 0;
+            }
+
+            else
+            //Envia CMD37 para limpar ocorrencia,
             {
                 ansi_tab5.cod_ocorrencia = cmd40->payload[0];
                 ansi_tab5.subcod_ocorrencia = cmd40->payload[1];
@@ -601,26 +651,6 @@ void trataRespABNT(void)
                 abntOcorrencia = ansi_tab5.cod_ocorrencia;
                 //Envia cmd37 pra limpar cond de ocorrencia
                 insereCmdABNT(LISTA_URGENTE, ID_CMD37);
-            }
-
-            else //ocorrencia 43
-                 //Abre a sessao com senha e reenvia o mesmo comando
-            {
-                cmdAtrasado = buscaUltimoCmd();
-                //Nao envia novo CMD11 se receber erro de senha
-                //ou se nao tem seeha programada
-                if ( (cmdAtrasado.cmd != ID_CMD11) &&
-                     (cmdAtrasado.cmd != ID_CMD13) &&
-                     (localKeys.senhaABNT_ok == FLASH_VALID) )
-                {
-                    insereCmdABNT(LISTA_URGENTE, ID_CMD13);
-                    insereCmdABNT(LISTA_URGENTE, ID_CMD11);
-                }
-                else //senha incorreta
-                {
-                    ansi_tab5.alarmes.senha_abnt = 1;
-                    insereTabelaANSI(TAB_ANSI05, SIZE_TABELA5_CMD40);
-                }
             }
         }
         break;
@@ -1049,6 +1079,47 @@ void trataNovoIntervalo(void)
         novoIntervaloLoRa = 0;
     }
 } //trataNovoIntervalo(
+
+/**
+* @brief Funcao para tratar a causa do ultimo reset
+*
+* Esta funcao trata a causa do ultimo reset e deve ser chamada no inicio do
+* setup(). A leitura o registro deve ser feita previamente e passada para
+* esta funcao que irá identificar a causa e incrementar o contador especifico
+* prerando para ser salvo.
+*
+* @param[in] registro lido a ser avaliado
+*
+************************************************************************/
+void trataCausaRst(uint8_t rcause_lido)
+{
+    SerialDebug.print("\r\n\r\n\r\n---------------------\r\nRCAUSE = 0x");
+    SerialDebug.println(rcause_lido, HEX);
+    if (rcause_lido & PM_RCAUSE_SYST)
+    {
+        localKeys.log_sanidade.cont_SWrst++;
+        SerialDebug.println("\r\n\r\n ---> RESET por Software !!! <---\r\n");
+    }
+    else if (rcause_lido & PM_RCAUSE_WDT)
+    {
+        localKeys.log_sanidade.cont_WDT++;
+        SerialDebug.println("\r\n\r\n ---> RESET por WDT !!! <---\r\n");
+    }
+    else if (rcause_lido & PM_RCAUSE_EXT)
+    {
+        localKeys.log_sanidade.cont_EXTrst++;
+        SerialDebug.println("\r\n\r\n ---> RESET Externo !!! <---\r\n");
+    }
+    else if (rcause_lido & PM_RCAUSE_POR)
+    {
+        localKeys.log_sanidade.cont_POR++;
+        SerialDebug.println("\r\n\r\n ---> RESET por POR !!! <---\r\n");
+    }
+    else
+        SerialDebug.println("\r\n\r\n ---> RESET desconhecido !!! <---\r\n");
+
+    salvarNaoVolatil = true;
+} //trataCausaRst(
 
 void inicializaSinalizacao(uint32_t sampleRate, tipoTimer_t tipo)
 {

@@ -959,6 +959,12 @@ uint8_t buscaCmdABNT(void)
     cmdEstendido = listaCmd[LISTA_PT(*ptLeitura)].codEstendido;
     ret = listaCmd[LISTA_INC_PT(*ptLeitura)].cmd;
     bloqPtABNT = false; //Libera acesso a lista
+
+    //--- log de sanidade
+    localKeys.log_sanidade.ptEscritaABNT = ptEscritaCmd;
+    localKeys.log_sanidade.ptLeituraABNT = ptLeituraCmd;
+    localKeys.log_sanidade.ptEscritaABNTUrgente = ptEscritaCmdUrgent;
+    localKeys.log_sanidade.ptLeituraABNTUrgente = ptLeituraCmdUrgent;
     return ret;
 } //buscaCmdABNT(
 

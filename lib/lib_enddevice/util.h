@@ -80,7 +80,7 @@ public:
 * @param[in] appEui         Application EUI para validar o Join OTAA no NS
 * @param[in] appKey         Application Key para validar o Join OTAA no NS
 * @return retrun TRUE indicando que ha uma sessao estabelecida, FALSE caso
-* contratio
+* contrario
 *
 ************************************************************************/
     bool fitecJoinOTAA(uint32_t tEsperaAccept, uint8_t nTentativas,\
@@ -274,24 +274,6 @@ typedef struct itemAgenda
                               (uint32_t)((l & 0x0000ff00U) <<  8) | \
                               (uint32_t)((l & 0x00ff0000U) >>  8) | \
                               (uint32_t)((l & 0xff000000U) >> 24)))
-
-typedef struct sanidade
-{
-    uint8_t     cont_POR;
-    uint8_t     cont_SWrst;
-    uint8_t     cont_WDT;
-    uint8_t     cont_EXTrst;
-    uint16_t    cont_up;
-    uint16_t    cont_dw;
-    uint8_t     uptime_rollMilli;
-    uint32_t    uptime_milli;
-    uint64_t    maxuptime :40;
-    uint64_t    ptLeituraABNT: 5;
-    uint64_t    ptEscritaABNT: 5;
-    uint64_t    ptLeituraLoRa: 5;
-    uint64_t    ptEscritaLoRa: 5;
-
-} __attribute__ ((packed)) sanidade_t;
 
 
 // Prototipos das funcoes exportadas

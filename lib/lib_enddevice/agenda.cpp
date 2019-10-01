@@ -138,6 +138,12 @@ void montaAgenda(void)
                                NUM_SEG_DIA, preparaABNTEventual);
     insereAgenda(&listaAgenda, novoItem);
 
+    //Atualizacao do uptime, verificando o estouro de millis()
+    // 1x / dia, 2 minutos depois do ABNT eventual
+    novoItem = criaItemAgenda((t0_ABNT + OFFSET_ABNT_EVENTUAL + 120)% \
+                               NUM_SEG_DIA, atualizaUptime);
+    insereAgenda(&listaAgenda, novoItem);
+
     #ifdef DEBUG_AGENDA
     SerialDebug.println("\r\nCriado evento ABNT diario\r\n");
     SerialDebug.flush();
@@ -154,8 +160,8 @@ void montaAgenda(void)
 /**
 * @brief Funcao para inserir ordenado na lista encadeada de itens da agenda
 *
-* Esta funcao insere um novo item de agenda na lista encadeada de agenda, ordenando
-* pelo horario do item.
+* Esta funcao insere um novo item de agenda na lista encadeada de agenda,
+* ordenando pelo horario do item.
 *
 * @param[in] **head ponteiro para inicio da lista encadeada
 * @param[in] *itemAInserir ponteiro para item a ser inserido
@@ -200,6 +206,11 @@ itemAgenda_t * criaItemAgenda(uint32_t new_tAgenda, void (* new_fAgenda) (void))
     return(newItem);
 } //criaItemAgenda(
 
+/*------------------------------
+***
+*** FUNCAO APENAS PARA DEBUG
+***
+-------------------------------*/
 void imprimeAgenda(void)
 {
     uint8_t contItem = 0;
@@ -403,3 +414,33 @@ void limpaLista(itemAgenda_t * head)
         free(tmp);
     }
 } //limpaLista(
+
+/**
+* @brief Funcao para atualizar o contador de uptime, verificando o estou de
+*        millis()
+*
+* Esta funcao verifica o estouro do contador de milissegundos do sistema e
+* incrementa o contador de vezes que ele estourou. Este contador define o
+* tempo que o dispositivo está ligado. No log de senaidade este contador e
+* somado ao valor atualde millis() e dividido por 1000 para manter um contador
+* de uptime em segundos.
+* Para o correto funcionamento esta funcao deve ser chamada, no minimo 2x a cada
+* ciclo do contador de milissegundos (~49,7 dias).
+*
+************************************************************************/
+void atualizaUptime(void){
+
+    static uint32_t currUptime, lastMillis;
+    auto currMillis = millis();
+
+    if (currMillis < lastMillis)
+    {
+        localKeys.log_sanidade.uptime_rollMilli++;
+    }
+    currUptime = (((uint64_t)(localKeys.log_sanidade.uptime_rollMilli << 32)
+                   + currMillis) / 1000);
+    if (currUptime > localKeys.log_sanidade.maxuptime)
+        localKeys.log_sanidade.maxuptime = currUptime;
+
+
+} //atualizaUptime(
