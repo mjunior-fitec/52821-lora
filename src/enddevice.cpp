@@ -202,6 +202,9 @@ void setup()
 
     //#### Debug do log de sanidade
     //
+    localKeys.log_sanidade.uptime_milli = (((((uint64_t)localKeys.log_sanidade.uptime_rollMilli) << 32)
+                   + millis()) / 1000);
+
     SerialDebug.println("\r\nLog de sanidade:");
     SerialDebug.println("POR: " + String(localKeys.log_sanidade.cont_POR));
     SerialDebug.println("SW: " + String(localKeys.log_sanidade.cont_SWrst));
@@ -212,9 +215,9 @@ void setup()
     SerialDebug.println("Dwlinks: " + String(localKeys.log_sanidade.cont_dw));
     SerialDebug.println("Uptime roll: " + String(localKeys.log_sanidade.uptime_rollMilli));
     SerialDebug.println("Uptime milli: " + String(localKeys.log_sanidade.uptime_milli));
-    SerialDebug.println("MaxUPtime: " + String((uint32_t)localKeys.log_sanidade.maxuptime));
+    SerialDebug.println("MaxUpTime: " + String((uint32_t)localKeys.log_sanidade.maxuptime));
     SerialDebug.println("ptLeitABNT Urgente: " + String((uint8_t)localKeys.log_sanidade.ptLeituraABNTUrgente));
-    SerialDebug.println("ptEscrABNT URgente: " + String((uint8_t)localKeys.log_sanidade.ptEscritaABNTUrgente));
+    SerialDebug.println("ptEscrABNT Urgente: " + String((uint8_t)localKeys.log_sanidade.ptEscritaABNTUrgente));
     SerialDebug.println("ptLeitABNT: " + String((uint8_t)localKeys.log_sanidade.ptLeituraABNT));
     SerialDebug.println("ptEscrABNT: " + String((uint8_t)localKeys.log_sanidade.ptEscritaABNT));
     SerialDebug.println("ptLeitLoRa: " + String((uint8_t)localKeys.log_sanidade.ptLeituraLoRa));
@@ -267,13 +270,11 @@ void loop()
     #endif
 
     // A funcao de medir temperatura e muito demorada (~200ms), portanto
-    // so e chamada se a maquina de estados ABNT esta em IDLE
+    // so e chamada quando a maquina de estados ABNT esta em IDLE
     if ((stateABNT < ABNT_STATE_ENVIA_CMD) &&
         ((millis() - tLastTemp) > T_MIN_MEDE_TEMP))
     {
-        //SerialDebug.println("Chama mede temp!\r\n");
         medeTemperatura();
-        //SerialDebug.println("\r\nTemperatura localMax atual: " + String(localMaxTemp));
     }
     if ((millis() > horaSolicitaRTC) && !relogioValido)
     {
@@ -285,19 +286,11 @@ void loop()
         }
     }
 
-    // if ((millis() - tLasTab1TEST) > 45000)
-    // {
-    //     insereTabelaANSI(TAB_ANSI01);
-    //     tLasTab1TEST = millis();
-    //     ansi_tab1.temperatura = localMaxTemp;
-    //     localMaxTemp = 0;
-    // }
-
     trataSinalizacaoSucesso();
     //SerialDebug.println("St: " + String(sinalizaStatus) +
     //                 " Serial = " + String(portaSerial.interface));
     delay(50);
-    atualizaUptime();
+    atualizaUptime(); // <----- Manter apenas 1x / dia
     Watchdog.reset();
 } //loop()
 
@@ -618,14 +611,29 @@ void trataRespABNT(void)
         {
             abnt_resp_generic_t *cmd40;
             cmd40 = (abnt_resp_generic_t *)buffRespRecebida;
+            itemCmdABNT_t cmdEnviado;
 
             //Caso seja ocorrencia 43, indicando necessidade de abertura
             //de sessao ou parametrizacao incompleta
-            if (ABNT_OCORRENCIA43 == cmd40->payload[0] &&
-                (localKeys.senhaABNT_ok == FLASH_VALID))
-                 //Abre a sessao com senha e reenvia o mesmo comando
+
+            cmdEnviado = buscaUltimoCmd();
+            if (ABNT_OCORRENCIA43 == cmd40->payload[0])
             {
-                cmdAtrasado = buscaUltimoCmd();
+                if  (localKeys.senhaABNT_ok != FLASH_VALID)
+                {
+                    //#### DEBUG !!!
+                SerialDebug.println("NAO vai abrir sessao para envio do cmd" +
+                                     String(cmdAtrasado.cmd, HEX) +
+                                     "\r\n Senha ABNT nao programada!\r\n");
+                    ansi_tab5.alarmes.senha_abnt = 1;
+                    insereTabelaANSI(TAB_ANSI05, SIZE_TABELA5_CMD40);
+                }
+                else
+                //Abre a sessao com senha e reenvia o mesmo comando
+                //#### DEBUG !!!
+                SerialDebug.println("Vai abrir sessao para envio do cmd" +
+                                     String(cmdAtrasado.cmd, HEX) );
+                cmdAtrasado = cmdEnviado;
                 insereCmdABNT(LISTA_URGENTE, ID_CMD13);
                 insereCmdABNT(LISTA_URGENTE, ID_CMD11);
             }
@@ -633,17 +641,19 @@ void trataRespABNT(void)
             {
                 ansi_tab5.alarmes.senha_abnt = 1;
                 insereTabelaANSI(TAB_ANSI05, SIZE_TABELA5_CMD40);
-                localKeys.senhaABNT_ok = 0;
+                localKeys.senhaABNT_ok = false;
+                savedKeys.write(localKeys);
             }
             else if (ABNT_OCORRENCIA45 == cmd40->payload[0])//medidor bloqueado
             {
                 ansi_tab5.alarmes.medidor_bloq = 1;
                 insereTabelaANSI(TAB_ANSI05, SIZE_TABELA5_CMD40);
-                localKeys.senhaABNT_ok = 0;
+                //localKeys.senhaABNT_ok = false;
             }
 
-            else
-            //Envia CMD37 para limpar ocorrencia,
+            else if (cmdEnviado.cmd != ID_CMD37)
+            //Envia CMD37 para limpar ocorrencia, para todos os comandos, exceto
+            //o proprio 37...
             {
                 ansi_tab5.cod_ocorrencia = cmd40->payload[0];
                 ansi_tab5.subcod_ocorrencia = cmd40->payload[1];
@@ -801,7 +811,7 @@ void initHW(void)
     Serial1.setTimeout(250);
     SerialDebug.begin(9600);
 
-    SerialDebug.println("Start...");
+    SerialDebug.println("\r\n\r\n =-=-=-=-=- Start...");
 
     return;
 }
@@ -819,8 +829,9 @@ void initComissionamento(void)
         localKeys.intervalo = intervaloLoRa;
         localKeys.comissionado = FLASH_VALID; //indica que tem valores validos
         localKeys.sessao_ok = false; // indica que nao ha sessao valida
+        localKeys.senhaABNT_ok = false; // indica que nao ha senha ABNT valida
         savedKeys.write(localKeys);
-        SerialDebug.println("Chave recebida!");
+        SerialDebug.println("Chave(s) recebida(s)!\r\n Valores default gravados!");
     }
     SerialDebug.println("local secrets:");
     SerialDebug.println("EUI: " + String((char *)(localKeys.appeui)));

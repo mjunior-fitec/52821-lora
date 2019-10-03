@@ -50,6 +50,7 @@
 #define LORA_RESP_INTERVAL      1000
 #define TEMPO_MORTO             5000
 #define TMIN_SEM_CONECTALORA    20000
+#define MAX_LORA_NCONECT        5
 
 #define DEBUG_BAUD 9600
 

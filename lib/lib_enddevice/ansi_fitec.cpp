@@ -210,8 +210,19 @@ void updateTLoRaSend(void)
 
 bool trataLoRa(void)
 {
+    static uint8_t contLoRaNConect = 0;
+
     if (!modem.isJoined())
-        return false;
+    {
+        if (++contLoRaNConect > MAX_LORA_NCONECT)
+        {
+            contLoRaNConect = 0;
+            return false;
+        }
+
+    }
+    else
+        contLoRaNConect = 0;
 
     if ((millis() - tLastLoRaSend) > MIN_LORA_INTERVAL)
     {
@@ -340,6 +351,9 @@ int trataDownLink(void)
         ///-----------------------------------------------------
         //#### Debug do log de sanidade
         //
+        localKeys.log_sanidade.uptime_milli = (((((uint64_t)localKeys.log_sanidade.uptime_rollMilli) << 32)
+                   + millis()) / 1000);
+
         SerialDebug.println("\r\n-------------------------\r\nLog de sanidade:");
         SerialDebug.println("POR: " + String(localKeys.log_sanidade.cont_POR));
         SerialDebug.println("SW: " + String(localKeys.log_sanidade.cont_SWrst));
@@ -350,9 +364,9 @@ int trataDownLink(void)
         SerialDebug.println("Dwlinks: " + String(localKeys.log_sanidade.cont_dw));
         SerialDebug.println("Uptime roll: " + String(localKeys.log_sanidade.uptime_rollMilli));
         SerialDebug.println("Uptime milli: " + String(localKeys.log_sanidade.uptime_milli));
-        SerialDebug.println("MaxUPtime: " + String((uint32_t)localKeys.log_sanidade.maxuptime));
+        SerialDebug.println("MaxUpTime: " + String((uint32_t)localKeys.log_sanidade.maxuptime));
         SerialDebug.println("ptLeitABNT Urgente: " + String((uint8_t)localKeys.log_sanidade.ptLeituraABNTUrgente));
-        SerialDebug.println("ptEscrABNT URgente: " + String((uint8_t)localKeys.log_sanidade.ptEscritaABNTUrgente));
+        SerialDebug.println("ptEscrABNT Urgente: " + String((uint8_t)localKeys.log_sanidade.ptEscritaABNTUrgente));
         SerialDebug.println("ptLeitABNT: " + String((uint8_t)localKeys.log_sanidade.ptLeituraABNT));
         SerialDebug.println("ptEscrABNT: " + String((uint8_t)localKeys.log_sanidade.ptEscritaABNT));
         SerialDebug.println("ptLeitLoRa: " + String((uint8_t)localKeys.log_sanidade.ptLeituraLoRa));

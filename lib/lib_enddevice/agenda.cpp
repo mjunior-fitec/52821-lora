@@ -303,7 +303,6 @@ void programaAlarmeAgenda(void)
     #endif
 } //programaAlarmeAgenda(
 
-/** */
 void transmiteLoRaFrequente(void)
 {
     if (bloqPtANSI)
@@ -317,10 +316,10 @@ void transmiteLoRaFrequente(void)
     SerialDebug.println("transmiteLoRaFrequente");
     programaAlarmeAgenda();
     ansi_tab1.temperatura = localMaxTemp;
-    SerialDebug.println("\r\nTemperatura localMax: " + String(localMaxTemp));
-    SerialDebug.println("\r\nTemperatura a ser enviada: " + String(ansi_tab1.temperatura));
+    // SerialDebug.println("\r\nTemperatura localMax: " + String(localMaxTemp));
+    // SerialDebug.println("\r\nTemperatura a ser enviada: " + String(ansi_tab1.temperatura));
     localMaxTemp = 0;
-    SerialDebug.println("\r\nMaxTemp zerada!\r\n\r\n");
+    // SerialDebug.println("\r\nMaxTemp zerada!\r\n\r\n");
 
     //leAlarmeMedidor();
     insereTabelaANSI(TAB_ANSI01);
