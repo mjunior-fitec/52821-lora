@@ -45,6 +45,7 @@
 #define MILLIS_2HORAS           (7200000L)
 
 #define MAX_SEND_RETRY      5
+#define MAX_ISCONNECT_RETRY 5
 #define T_WAIT_ABP          5000
 
 #define FLASH_VALID     0xA5
@@ -164,9 +165,18 @@ public:
         int getACK = -1;
         uint8_t dummy;
         uint8_t maxRetry = MAX_SEND_RETRY;
+        uint8_t loraNConect = MAX_ISCONNECT_RETRY;
 
-        if (!isJoined())
+        while (--loraNConect)
+        {
+            if (isJoined())
+                break;
+
+            delay(500);
+        }
+        if (!loraNConect)
             return false;
+
         while (getACK < 0)
         {
             Watchdog.reset();

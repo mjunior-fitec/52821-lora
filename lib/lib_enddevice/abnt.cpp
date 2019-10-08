@@ -597,15 +597,23 @@ void montaCmdAbnt(void)
         abnt_cmd_abertura_sessao_t *cmd_abertura_sessao;
         cmd_abertura_sessao = (abnt_cmd_abertura_sessao_t *)&cmdABNT;
 
-        uint8_t token[10];
-        uint8_t inputHash[24];
+        static uint8_t token[10];
+        static uint8_t inputHash[24];
+
+        //********** DEBUG DO BUFFER DE ENVIO ABNT ***************/
+        SerialDebug.println("INICIO\r\n Buffer de envio: ");
+        for (uint8_t i = 0; i < 66; i++)
+            SerialDebug.print(String(*((uint8_t *)&cmdABNT + i), HEX) + " ");
+        SerialDebug.println();
+        SerialDebug.flush();
+        //*******************************************************/
 
         if (EH_MEDIDOR_RESIDENCIAL(localKeys.modeloMedidor))
         {
             //DEBUG!
             SerialDebug.println(" -- Identificado residencial!");
 
-            uint8_t numSerieMedidor[10];
+            static uint8_t numSerieMedidor[10];
             //Num serie em BCD para montar o hash
             abntIntToBcd(localKeys.numSerieMedidor, numSerieMedidor);
             //Input para o MD5 (E430 e E450) = NumSerie | seed | key
@@ -613,9 +621,21 @@ void montaCmdAbnt(void)
             memcpy(inputHash + 4, (void *)sementeABNT, 10);
             memcpy(inputHash + 14, (void *)localKeys.senhaABNT, 10);
 
+
+            //********** DEBUG DO BUFFER DE ENVIO ABNT ***************/
+            SerialDebug.println("APOS PREPARACAO DO INPUT\r\n Buffer de envio: ");
+            for (uint8_t i = 0; i < 66; i++)
+                SerialDebug.print(String(*((uint8_t *)&cmdABNT + i), HEX) + " ");
+            SerialDebug.println();
+            SerialDebug.flush();
+            //*******************************************************/
+
+
             SerialDebug.println("Input: ");
             for (uint8_t i = 0; i < 24; i++)
                 SerialDebug.print(String(inputHash[i], HEX) + " ");
+            SerialDebug.println("");
+            SerialDebug.flush();
 
             //A funcao MD5 so recebe String como entrada, assim e necessario
             //copiar o vetor de bytes numa variavel string sem converter para ASCII
@@ -623,9 +643,26 @@ void montaCmdAbnt(void)
             inputHashStr.append((char *)inputHash, 24);
             auto calcMD5 = md5(inputHashStr);
 
+            SerialDebug.println("Length inputhash: " + String(inputHashStr.length()));
+            SerialDebug.println("Length calcMD5: " + String(calcMD5.length()));
+
+
+            //********** DEBUG DO BUFFER DE ENVIO ABNT ***************/
+            SerialDebug.println("APOS CALCULO DO MD5\r\n Buffer de envio: ");
+            for (uint8_t i = 0; i < 66; i++)
+                SerialDebug.print(String(*((uint8_t *)&cmdABNT + i), HEX) + " ");
+            SerialDebug.println();
+            SerialDebug.flush();
+            //*******************************************************/
+
+
+            //*** No algoritmo para modelo residencial, o input sao 24 bytes e
+            // o hash calculado tem 16 bytes!
+            //****************************************************************
+
             //O resultado da funcao MD5 e uma string contendo a representacao
             //hexa do hash calculado, assim e necessario converter para bytes
-            uint8_t calcMD5_[16];
+            static uint8_t calcMD5_[16];
             stringToBytes(calcMD5_, calcMD5);
 
             //O token, a ser usado no comando de abertura de sessao, e
@@ -644,6 +681,30 @@ void montaCmdAbnt(void)
                 SerialDebug.print(String(token[i], HEX) + " ");
             SerialDebug.println();
             SerialDebug.flush();
+
+
+            //********** DEBUG DO BUFFER DE ENVIO ABNT ***************/
+            SerialDebug.println("APOS COPIA DO TOKEN\r\n Buffer de envio: ");
+            for (uint8_t i = 0; i < 66; i++)
+                SerialDebug.print(String(*((uint8_t *)&cmdABNT + i), HEX) + " ");
+            SerialDebug.println();
+            SerialDebug.flush();
+            //*******************************************************/
+
+
+            SerialDebug.println(" --- Fim  do tratamento residencial! ---");
+            SerialDebug.flush();
+
+            //--------- CODIGO COMUM, colocado aqui pata teste! ---
+            //*******************************************************/
+            memcpy(cmd_abertura_sessao->criptografia, token, sizeof(token));
+
+            SerialDebug.println("Payload do cmd 11:");
+            for (uint8_t i = 0; i < 30; i++)
+                SerialDebug.print(String(cmdABNT.payload[i], HEX) + " ");
+            SerialDebug.println();
+            SerialDebug.flush();
+            //*******************************************************/
         }
 
         //-----
@@ -656,23 +717,52 @@ void montaCmdAbnt(void)
             memcpy(inputHash, (void *)localKeys.senhaABNT, 10);
             memcpy(inputHash + 10, (void *)sementeABNT, 10);
 
+
+            //********** DEBUG DO BUFFER DE ENVIO ABNT ***************/
+            SerialDebug.println("APOS PREPARACAO DO INPUT\r\n Buffer de envio: ");
+            for (uint8_t i = 0; i < 66; i++)
+                SerialDebug.print(String(*((uint8_t *)&cmdABNT + i), HEX) + " ");
+            SerialDebug.println();
+            SerialDebug.flush();
+            //*******************************************************/
+
+
             SerialDebug.println("Input: ");
             for (uint8_t i = 0; i < 20; i++)
                 SerialDebug.print(String(inputHash[i], HEX) + " ");
-            SerialDebug.println();
+            SerialDebug.println("");
             SerialDebug.flush();
 
+            /********
+             *
+             *  MUDAR PARA:  NEW String !!!!
+             *
+             *********/
             std::string inputHashStr = "";
             inputHashStr.append((char *)inputHash, 20);
+            static auto calcSHA = sha256(inputHashStr);
 
-            auto calcSHA = sha256(inputHashStr);
-            //O resultado da funcao SHA256 e uma string contendo a representacao
+
+            //********** DEBUG DO BUFFER DE ENVIO ABNT ***************/
+            SerialDebug.println("APOS CALCULO DO SHA256\r\n Buffer de envio: ");
+            for (uint8_t i = 0; i < 66; i++)
+                SerialDebug.print(String(*((uint8_t *)&cmdABNT + i), HEX) + " ");
+            SerialDebug.println();
+            SerialDebug.flush();
+            //*******************************************************/
+
+
+            //*** No algoritmo para modelos ICG, o input sao 20 bytes e
+            // o hash calculado tem 32 bytes!
+            //****************************************************************
+
+            //O resultado da funcao SHA256 eh uma string contendo a representacao
             //hexa do hash calculado, assim e necessario converter para bytes
-            uint8_t calcSHA_[16];
+            static uint8_t calcSHA_[32];
             stringToBytes(calcSHA_, calcSHA);
 
             SerialDebug.println("Hash: ");
-            for (uint8_t i = 0; i < 16; i++)
+            for (uint8_t i = 0; i < 32; i++)
                 SerialDebug.print(String(calcSHA_[i], HEX) + " ");
             SerialDebug.println();
             SerialDebug.flush();
@@ -685,19 +775,45 @@ void montaCmdAbnt(void)
                 SerialDebug.print(String(token[i], HEX) + " ");
             SerialDebug.println();
             SerialDebug.flush();
+
+            //********** DEBUG DO BUFFER DE ENVIO ABNT ***************/
+            SerialDebug.println("APOS COPIA DO TOKEN\r\n Buffer de envio: ");
+            for (uint8_t i = 0; i < 66; i++)
+                SerialDebug.print(String(*((uint8_t *)&cmdABNT + i), HEX) + " ");
+            SerialDebug.println();
+            SerialDebug.flush();
+            //*******************************************************/
+
+
+
+            SerialDebug.println(" --- Fim  do tratamento ICG! ---");
+            SerialDebug.flush();
+
+            //--------- CODIGO COMUM, colocado aqui pata teste! ---
+            //*******************************************************/
+            memcpy(cmd_abertura_sessao->criptografia, token, sizeof(token));
+
+            SerialDebug.println("Payload do cmd 11:");
+            for (uint8_t i = 0; i < 30; i++)
+                SerialDebug.print(String(cmdABNT.payload[i], HEX) + " ");
+            SerialDebug.println();
+            SerialDebug.flush();
+            //*******************************************************/
         }
         else
         {
             //Erro modelo de medidor invalido
+            SerialDebug.println("Modelo nao identificado!!!");
+            SerialDebug.flush();
+            return;
         }
 
-
-        memcpy(cmd_abertura_sessao->criptografia, token, sizeof(token));
-
-        for (uint8_t i = 0; i < 30; i++)
-            SerialDebug.print(String(cmdABNT.payload[i], HEX) + "\t");
-        SerialDebug.println();
-        SerialDebug.flush();
+        SerialDebug.println("Fim do tratamento de cmd11");
+        // SerialDebug.println("Payload do cmd 11:");
+        // for (uint8_t i = 0; i < 30; i++)
+        //     SerialDebug.print(String(cmdABNT.payload[i], HEX) + " ");
+        // SerialDebug.println();
+        // SerialDebug.flush();
         break;
     }
 
@@ -792,12 +908,12 @@ void montaCmdAbnt(void)
     memcpy(buffABNTsend, &cmdABNT, LEN_CMD);
 
     /// --- DEBUG
-    // SerialDebug.println("Buffer a ser enviado");
-    // for (uint8_t i = 0; i < 66; i++)
-    // {
-    //     SerialDebug.print(String(pBuffABNTsend[i], HEX) + "\t");
-    // }
-    // SerialDebug.println();
+    SerialDebug.println("\r\n Buffer a ser enviado (ABNT):");
+    for (uint8_t i = 0; i < 66; i++)
+    {
+        SerialDebug.print(String(pBuffABNTsend[i], HEX) + " ");
+    }
+    SerialDebug.println();
     ///
 
     return;

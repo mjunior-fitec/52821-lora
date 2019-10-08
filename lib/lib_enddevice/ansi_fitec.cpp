@@ -219,7 +219,6 @@ bool trataLoRa(void)
             contLoRaNConect = 0;
             return false;
         }
-
     }
     else
         contLoRaNConect = 0;
@@ -447,6 +446,8 @@ int trataDownLink(void)
             //Agenda o envio dos comandos para o medidor com as programacoes recebidas
             insereCmdABNT(LISTA_NORMAL, ID_CMD29);
             insereCmdABNT(LISTA_NORMAL, ID_CMD30);
+            ansi_tab5.alarmes.relogio_dispositivo = 0;
+            ansi_tab5.alarmes.relogio_medidor = 0;
             if (SIZE_TABELA10 == rcv[2])
             {
                 insereCmdABNT(LISTA_NORMAL, ID_CMD35);
@@ -519,6 +520,7 @@ int trataDownLink(void)
                 memcpy(localKeys.senhaABNT, tab12->senhaABNT,
                        sizeof(localKeys.senhaABNT));
                 localKeys.senhaABNT_ok = FLASH_VALID;
+                ansi_tab5.alarmes.senha_abnt = 0;
                 salvarNaoVolatil = true;
             }
             if (programacaoCorteReliga)

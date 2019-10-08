@@ -26,12 +26,14 @@
 #define DEBUG_SERIAL3
 #define DEBUG_LORA
 #define TESTE_INTEGRACAO
+
 //#define TESTE_JOIN
 //#define TEST_TERMINAL_AT
 //#define TEST_TIMER5
 //#define TESTE_CRIPTO
 //#define TESTE_MODELO
 //#define TEST_INITXMIT
+//#define TEST_REPIQUE
 
 #define SECRET_APP_EUI "70B3D57ED0012777"
 //#define SECRET_APP_KEY "AECBAEA6EB06A316413E7B2244DFBF00" //AppKey para servidor interno Multitech / Node-RED

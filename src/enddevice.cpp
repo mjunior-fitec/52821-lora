@@ -320,6 +320,7 @@ void trataRespABNT(void)
                 SerialDebug.println("\t --> Senha validada ! <--");
                 insereCmdABNT(LISTA_URGENTE, cmdAtrasado.cmd,
                                   cmdAtrasado.codEstendido);
+                ansi_tab5.alarmes.senha_abnt = 0;
             }
         }
         break;
@@ -329,6 +330,7 @@ void trataRespABNT(void)
             abnt_resp_generic_t *respCmd13;
             respCmd13 = buffRespRecebida;
             memcpy (sementeABNT, respCmd13->payload, sizeof(sementeABNT));
+            ansi_tab5.alarmes.medidor_bloq = 0;
         }
         break;
 
@@ -613,29 +615,31 @@ void trataRespABNT(void)
             cmd40 = (abnt_resp_generic_t *)buffRespRecebida;
             itemCmdABNT_t cmdEnviado;
 
+            cmdEnviado = buscaUltimoCmd();
+
             //Caso seja ocorrencia 43, indicando necessidade de abertura
             //de sessao ou parametrizacao incompleta
-
-            cmdEnviado = buscaUltimoCmd();
             if (ABNT_OCORRENCIA43 == cmd40->payload[0])
             {
-                if  (localKeys.senhaABNT_ok != FLASH_VALID)
+                if (localKeys.senhaABNT_ok != FLASH_VALID)
                 {
                     //#### DEBUG !!!
-                SerialDebug.println("NAO vai abrir sessao para envio do cmd" +
-                                     String(cmdAtrasado.cmd, HEX) +
-                                     "\r\n Senha ABNT nao programada!\r\n");
+                    SerialDebug.println("NAO vai abrir sessao para envio do cmd" +
+                                        String(cmdEnviado.cmd, HEX) +
+                                        "\r\n Senha ABNT nao programada!\r\n");
                     ansi_tab5.alarmes.senha_abnt = 1;
                     insereTabelaANSI(TAB_ANSI05, SIZE_TABELA5_CMD40);
                 }
                 else
-                //Abre a sessao com senha e reenvia o mesmo comando
-                //#### DEBUG !!!
-                SerialDebug.println("Vai abrir sessao para envio do cmd" +
-                                     String(cmdAtrasado.cmd, HEX) );
-                cmdAtrasado = cmdEnviado;
-                insereCmdABNT(LISTA_URGENTE, ID_CMD13);
-                insereCmdABNT(LISTA_URGENTE, ID_CMD11);
+                {
+                    //Abre a sessao com senha e reenvia o mesmo comando
+                    cmdAtrasado = cmdEnviado;
+                    //#### DEBUG !!!
+                    SerialDebug.println("Vai abrir sessao para envio do cmd" +
+                                        String(cmdAtrasado.cmd, HEX));
+                    insereCmdABNT(LISTA_URGENTE, ID_CMD13);
+                    insereCmdABNT(LISTA_URGENTE, ID_CMD11);
+                }
             }
             else if (ABNT_OCORRENCIA41 == cmd40->payload[0]) //senha incorreta
             {
@@ -771,11 +775,12 @@ void trataRespABNT(void)
         }
 
         ///// --- DEBUG - Resposta recebida
-        // for (uint16_t i = 0; i < 258; i++)
-        // {
-        //     SerialDebug.print(String(pBuffABNTrecv[i], HEX) + "\t");
-        // }
-        // SerialDebug.println();
+        SerialDebug.println("\r\n Resposta recebida do medidor(ABNT):");
+        for (uint16_t i = 0; i < 258; i++)
+        {
+            SerialDebug.print(String(pBuffABNTrecv[i], HEX) + " ");
+        }
+        SerialDebug.println();
         /////
 
         abntRespostaTratada();
@@ -811,7 +816,7 @@ void initHW(void)
     Serial1.setTimeout(250);
     SerialDebug.begin(9600);
 
-    SerialDebug.println("\r\n\r\n =-=-=-=-=- Start...");
+    SerialDebug.println("\r\n\r\n=-=-=-=-=-=-=-=-\r\nStart...");
 
     return;
 }
@@ -2665,4 +2670,70 @@ void loop()
 {
 }
 
+#endif
+
+
+#ifdef TEST_REPIQUE
+
+#include "wiring_private.h"
+
+/**
+* @brief Funcao para inicilializar o HW
+*
+* Esta funcao inicializa os pinos para suas funcoes especificas
+* e configura o hardware da placa MKRWAN para o devido uso, inclusive
+* as portas seriais.
+*
+************************************************************************/
+void initHW(void)
+{
+    pinPeripheral(1, PIO_SERCOM);
+    pinPeripheral(0, PIO_SERCOM);
+    pinMode(LED_BUILTIN, OUTPUT);
+
+    digitalWrite(LED_BUILTIN, LOW);
+
+    pinMode(PIN_A5, OUTPUT);
+
+    Serial1.begin(9600);
+    Serial1.setTimeout(250);
+    SerialDebug.begin(9600);
+
+    SerialDebug.println("Start...");
+
+    return;
+}
+
+void piscaLed(uint8_t ciclos, uint16_t t_on, uint16_t t_off)
+{
+
+    for (uint16_t k = 0; k < ciclos; k++)
+    {
+        digitalWrite(LED_BUILTIN, HIGH);
+        digitalWrite(PIN_A5, HIGH);
+        delay(t_on);
+        digitalWrite(LED_BUILTIN, LOW);
+        digitalWrite(PIN_A5, LOW);
+        delay(t_off);
+    }
+} //piscaLed(
+
+//Habilitacao de uma nova UART, Serial3, nos pinos 0, PA22 (Tx) e 1, PA23 (Rx)
+Uart Serial3(&sercom3, 1, 0, SERCOM_RX_PAD_1, UART_TX_PAD_0);
+void SERCOM3_Handler()
+{
+    Serial3.IrqHandler();
+}
+#define SerialDebug SerialUSB
+
+void setup()
+{
+    void initHW();
+    piscaLed(5, 50, 100);
+}
+
+void loop()
+{
+    piscaLed();
+}
 #endif
