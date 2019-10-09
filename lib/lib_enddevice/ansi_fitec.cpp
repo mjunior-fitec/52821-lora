@@ -169,8 +169,8 @@ uint8_t buscaTabelaANSI(void)
     bloqPtANSI = false; //Libera acesso a lista
 
     //--- log de sanidade
-    localKeys.log_sanidade.ptEscritaLoRa = ptEscritaTabela;
-    localKeys.log_sanidade.ptLeituraLoRa = ptLeituraTabela;
+    logSanidadeLocal.ptEscritaLoRa = ptEscritaTabela;
+    logSanidadeLocal.ptLeituraLoRa = ptLeituraTabela;
 
     return ret;
 } //buscaTabelaANSI(
@@ -350,7 +350,7 @@ int trataDownLink(void)
         ///-----------------------------------------------------
         //#### Debug do log de sanidade
         //
-        localKeys.log_sanidade.uptime_milli = (((((uint64_t)localKeys.log_sanidade.uptime_rollMilli) << 32)
+        logSanidadeLocal.currUptime = (((((uint64_t)logSanidadeLocal.uptime_rollMilli) << 32)
                    + millis()) / 1000);
 
         SerialDebug.println("\r\n-------------------------\r\nLog de sanidade:");
@@ -361,15 +361,15 @@ int trataDownLink(void)
         SerialDebug.println("Stk Ovf: " + String(localKeys.log_sanidade.cont_StOvflw));
         SerialDebug.println("Uplinks: " + String(localKeys.log_sanidade.cont_up));
         SerialDebug.println("Dwlinks: " + String(localKeys.log_sanidade.cont_dw));
-        SerialDebug.println("Uptime roll: " + String(localKeys.log_sanidade.uptime_rollMilli));
-        SerialDebug.println("Uptime milli: " + String(localKeys.log_sanidade.uptime_milli));
-        SerialDebug.println("MaxUpTime: " + String((uint32_t)localKeys.log_sanidade.maxuptime));
-        SerialDebug.println("ptLeitABNT Urgente: " + String((uint8_t)localKeys.log_sanidade.ptLeituraABNTUrgente));
-        SerialDebug.println("ptEscrABNT Urgente: " + String((uint8_t)localKeys.log_sanidade.ptEscritaABNTUrgente));
-        SerialDebug.println("ptLeitABNT: " + String((uint8_t)localKeys.log_sanidade.ptLeituraABNT));
-        SerialDebug.println("ptEscrABNT: " + String((uint8_t)localKeys.log_sanidade.ptEscritaABNT));
-        SerialDebug.println("ptLeitLoRa: " + String((uint8_t)localKeys.log_sanidade.ptLeituraLoRa));
-        SerialDebug.println("ptEscrLoRa: " + String((uint8_t)localKeys.log_sanidade.ptEscritaLoRa));
+        //SerialDebug.println("Uptime roll: " + String(localKeys.log_sanidade.uptime_rollMilli));
+        SerialDebug.println("Uptime sec: " + String((uint8_t)logSanidadeLocal.currUptime));
+        SerialDebug.println("MaxUpTime: " + String((uint32_t)localKeys.log_sanidade.maxUptime));
+        // SerialDebug.println("ptLeitABNT Urgente: " + String((uint8_t)localKeys.log_sanidade.ptLeituraABNTUrgente));
+        // SerialDebug.println("ptEscrABNT Urgente: " + String((uint8_t)localKeys.log_sanidade.ptEscritaABNTUrgente));
+        // SerialDebug.println("ptLeitABNT: " + String((uint8_t)localKeys.log_sanidade.ptLeituraABNT));
+        // SerialDebug.println("ptEscrABNT: " + String((uint8_t)localKeys.log_sanidade.ptEscritaABNT));
+        // SerialDebug.println("ptLeitLoRa: " + String((uint8_t)localKeys.log_sanidade.ptLeituraLoRa));
+        // SerialDebug.println("ptEscrLoRa: " + String((uint8_t)localKeys.log_sanidade.ptEscritaLoRa));
         SerialDebug.println("\r\n------- Fim do Log de sanidade -------");
         //------------------------------------------------------
 #endif

@@ -93,9 +93,18 @@ typedef struct sanidade
     uint8_t     cont_StOvflw;           // 4
     uint16_t    cont_up;                // 5 - 6
     uint16_t    cont_dw;                // 7 - 8
+
+
+    uint64_t    maxUptime :40;
+} __attribute__ ((packed)) sanidade_t;
+
+    //------
+typedef struct sanidade_local
+{
     uint8_t     uptime_rollMilli;       // 9
-    uint32_t    uptime_milli;           // 10 - 13
-    uint64_t    maxuptime :40;          // 14 - 18
+    // uint32_t    uptime_milli;        // 10 - 13
+    uint64_t    currUptime :40;
+    // uint64_t    maxuptime :40;       // 14 - 18
     uint64_t    ptLeituraABNT :5;       // 19
     uint64_t    ptEscritaABNT :5;       // 19 - 20
     uint64_t    ptLeituraLoRa :5;       // 20
@@ -103,7 +112,7 @@ typedef struct sanidade
     uint16_t    ptLeituraABNTUrgente: 5;// 22
     uint16_t    ptEscritaABNTUrgente: 5;// 22 - 23
 
-} __attribute__ ((packed)) sanidade_t;
+} __attribute__ ((packed)) sanidade_local_t;
 
 typedef struct secret_keys
 {
@@ -126,5 +135,6 @@ typedef struct secret_keys
 } __attribute__ ((packed)) secret_keys_t;
 
 extern secret_keys_t localKeys;
+extern sanidade_local_t logSanidadeLocal;
 
 #endif

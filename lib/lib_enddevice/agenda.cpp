@@ -434,12 +434,11 @@ void atualizaUptime(void){
 
     if (currMillis < lastMillis)
     {
-        localKeys.log_sanidade.uptime_rollMilli++;
+        logSanidadeLocal.uptime_rollMilli++;
     }
-    currUptime = (((uint64_t)(localKeys.log_sanidade.uptime_rollMilli << 32)
+    currUptime = (((uint64_t)(logSanidadeLocal.uptime_rollMilli << 32)
                    + currMillis) / 1000);
-    if (currUptime > localKeys.log_sanidade.maxuptime)
-        localKeys.log_sanidade.maxuptime = currUptime;
-
+    if (currUptime > localKeys.log_sanidade.maxUptime)
+        localKeys.log_sanidade.maxUptime = currUptime;
 
 } //atualizaUptime(

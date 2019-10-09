@@ -11,12 +11,6 @@
 *
 ************************************************************************/
 
-/*--------
-*
-*Alterar funcao de sendLoRa para enviar com ou sem solicitação de ACK
-*
-*--------*/
-
 
 
 #include "enddevice.h"
@@ -89,6 +83,10 @@ volatile static uint8_t contPulso;
 
 secret_keys_t localKeys;
 FlashStorage(savedKeys, secret_keys_t);
+
+sanidade_local_t logSanidadeLocal;
+
+sanidade_local_t sanidade_debug;
 
 uint32_t tLastTemp = 0;
 //uint32_t tLasTab1TEST = 0; ///#### mmjr Teste enviando tab1
@@ -202,7 +200,7 @@ void setup()
 
     //#### Debug do log de sanidade
     //
-    localKeys.log_sanidade.uptime_milli = (((((uint64_t)localKeys.log_sanidade.uptime_rollMilli) << 32)
+    logSanidadeLocal.currUptime = (((((uint64_t)logSanidadeLocal.uptime_rollMilli) << 32)
                    + millis()) / 1000);
 
     SerialDebug.println("\r\nLog de sanidade:");
@@ -213,15 +211,18 @@ void setup()
     SerialDebug.println("Stk Ovf: " + String(localKeys.log_sanidade.cont_StOvflw));
     SerialDebug.println("Uplinks: " + String(localKeys.log_sanidade.cont_up));
     SerialDebug.println("Dwlinks: " + String(localKeys.log_sanidade.cont_dw));
-    SerialDebug.println("Uptime roll: " + String(localKeys.log_sanidade.uptime_rollMilli));
-    SerialDebug.println("Uptime milli: " + String(localKeys.log_sanidade.uptime_milli));
-    SerialDebug.println("MaxUpTime: " + String((uint32_t)localKeys.log_sanidade.maxuptime));
-    SerialDebug.println("ptLeitABNT Urgente: " + String((uint8_t)localKeys.log_sanidade.ptLeituraABNTUrgente));
-    SerialDebug.println("ptEscrABNT Urgente: " + String((uint8_t)localKeys.log_sanidade.ptEscritaABNTUrgente));
-    SerialDebug.println("ptLeitABNT: " + String((uint8_t)localKeys.log_sanidade.ptLeituraABNT));
-    SerialDebug.println("ptEscrABNT: " + String((uint8_t)localKeys.log_sanidade.ptEscritaABNT));
-    SerialDebug.println("ptLeitLoRa: " + String((uint8_t)localKeys.log_sanidade.ptLeituraLoRa));
-    SerialDebug.println("ptEscrLoRa: " + String((uint8_t)localKeys.log_sanidade.ptEscritaLoRa));
+
+    SerialDebug.println("Uptime sec: " + String((uint8_t)(localKeys.log_sanidade.maxUptime)));
+
+    //SerialDebug.println("Uptime roll: " + String(localKeys.log_sanidade.uptime_rollMilli));
+    //SerialDebug.println("Uptime milli: " + String(localKeys.log_sanidade.uptime_milli));
+    //SerialDebug.println("MaxUpTime: " + String((uint32_t)localKeys.log_sanidade.maxuptime));
+    // SerialDebug.println("ptLeitABNT Urgente: " + String((uint8_t)sanidade_debug.ptLeituraABNTUrgente));
+    // SerialDebug.println("ptEscrABNT Urgente: " + String((uint8_t)sanidade_debug.ptEscritaABNTUrgente));
+    // SerialDebug.println("ptLeitABNT: " + String((uint8_t)sanidade_debug.ptLeituraABNT));
+    // SerialDebug.println("ptEscrABNT: " + String((uint8_t)sanidade_debug.ptEscritaABNT));
+    // SerialDebug.println("ptLeitLoRa: " + String((uint8_t)sanidade_debug.ptLeituraLoRa));
+    // SerialDebug.println("ptEscrLoRa: " + String((uint8_t)sanidade_debug.ptEscritaLoRa));
     SerialDebug.println("\r\n------- Fim do Log de sanidade -------");
 }
 
@@ -775,12 +776,12 @@ void trataRespABNT(void)
         }
 
         ///// --- DEBUG - Resposta recebida
-        SerialDebug.println("\r\n Resposta recebida do medidor(ABNT):");
-        for (uint16_t i = 0; i < 258; i++)
-        {
-            SerialDebug.print(String(pBuffABNTrecv[i], HEX) + " ");
-        }
-        SerialDebug.println();
+        // SerialDebug.println("\r\n Resposta recebida do medidor(ABNT):");
+        // for (uint16_t i = 0; i < 258; i++)
+        // {
+        //     SerialDebug.print(String(pBuffABNTrecv[i], HEX) + " ");
+        // }
+        // SerialDebug.println();
         /////
 
         abntRespostaTratada();
