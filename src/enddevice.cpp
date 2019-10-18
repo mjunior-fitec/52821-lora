@@ -17,7 +17,7 @@
 #include "util.h"
 #include <Arduino.h>
 #include <stdint.h>
-#ifdef TESTE_INTEGRACAO
+#ifdef FW_ENDDEVICE
 
 #include "abnt.h"
 #include "otica_ftdi.h"
@@ -51,7 +51,6 @@ void configuraSinalizacao(sinalizaStatus_t status, uint32_t sampleRate,
                           tipoTimer_t tipo = TIMER_MILLIS);
 void trataNovoIntervalo(void);
 void trataCausaRst(uint8_t rcause_lido);
-void atualizaUptime(void);
 void trataSinalizacaoSucesso(void);
 void maqEstSinalizacao(void);
 void trataSinalizacaoNComissionado(void);
@@ -86,8 +85,6 @@ FlashStorage(savedKeys, secret_keys_t);
 
 sanidade_local_t logSanidadeLocal;
 
-sanidade_local_t sanidade_debug;
-
 uint32_t tLastTemp = 0;
 //uint32_t tLasTab1TEST = 0; ///#### mmjr Teste enviando tab1
 
@@ -103,6 +100,27 @@ void setup()
     // 'Tempo morto' na inicialização...
     while (millis() < TEMPO_MORTO) ;
     initHW();
+
+
+
+    piscaLed(3, 50, 150);
+
+    sanidade_t teste_sanidade1;
+
+    SerialUSB.begin(9600);
+    uint32_t tStart = millis();
+
+    while ((millis() - tStart) < T_WAITUSB)
+    {
+        if (SerialUSB)
+            break;
+    }
+
+    SerialUSB.println("Size sanidade: " + String((uint8_t)sizeof(teste_sanidade1)));
+    SerialUSB.println("Size secret: " + String((uint8_t)sizeof(localKeys)));
+    SerialUSB.println("Size loc: " + String((uint8_t)sizeof(logSanidadeLocal)));
+
+
 
     //#########
     // Avaliar habilitacao de interrupcao para monitorar PWR_FAIL, gerando um
@@ -200,29 +218,27 @@ void setup()
 
     //#### Debug do log de sanidade
     //
-    logSanidadeLocal.currUptime = (((((uint64_t)logSanidadeLocal.uptime_rollMilli) << 32)
-                   + millis()) / 1000);
+    //logSanidadeLocal.currUptime = (((((uint64_t)logSanidadeLocal.uptimeRollMilli) << 32)
+    //               + millis()) / 1000);
 
     SerialDebug.println("\r\nLog de sanidade:");
-    SerialDebug.println("POR: " + String(localKeys.log_sanidade.cont_POR));
-    SerialDebug.println("SW: " + String(localKeys.log_sanidade.cont_SWrst));
-    SerialDebug.println("WDT: " + String(localKeys.log_sanidade.cont_WDT));
-    SerialDebug.println("Ext: " + String(localKeys.log_sanidade.cont_EXTrst));
-    SerialDebug.println("Stk Ovf: " + String(localKeys.log_sanidade.cont_StOvflw));
-    SerialDebug.println("Uplinks: " + String(localKeys.log_sanidade.cont_up));
-    SerialDebug.println("Dwlinks: " + String(localKeys.log_sanidade.cont_dw));
+    SerialDebug.println("POR: " + String(localKeys.log_sanidade.contPOR));
+    SerialDebug.println("SW: " + String(localKeys.log_sanidade.contSWrst));
+    SerialDebug.println("WDT: " + String(localKeys.log_sanidade.contWDT));
+    SerialDebug.println("Ext: " + String(localKeys.log_sanidade.contEXTrst));
+    SerialDebug.println("Uplinks: " + String(localKeys.log_sanidade.contUp));
+    SerialDebug.println("Dwlinks: " + String(localKeys.log_sanidade.contDw));
+    SerialDebug.println("Uptime sec: " + String((uint32_t)(localKeys.log_sanidade.curUptime)));
+    SerialDebug.println("MaxUptime sec: " + String((uint32_t)(localKeys.log_sanidade.maxUptime)));
+    SerialDebug.println("\r\n---- LOCAL: ----");
+    SerialDebug.println("Uptime roll: " + String(logSanidadeLocal.uptimeRollMilli));
+    SerialDebug.println("ptLeitABNT Urgente: " + String((uint8_t)logSanidadeLocal.ptLeituraABNTUrgente));
+    SerialDebug.println("ptEscrABNT Urgente: " + String((uint8_t)logSanidadeLocal.ptEscritaABNTUrgente));
+    SerialDebug.println("ptLeitABNT: " + String((uint8_t)logSanidadeLocal.ptLeituraABNT));
+    SerialDebug.println("ptEscrABNT: " + String((uint8_t)logSanidadeLocal.ptEscritaABNT));
+    SerialDebug.println("ptLeitLoRa: " + String((uint8_t)logSanidadeLocal.ptLeituraLoRa));
+    SerialDebug.println("ptEscrLoRa: " + String((uint8_t)logSanidadeLocal.ptEscritaLoRa));
 
-    SerialDebug.println("Uptime sec: " + String((uint8_t)(localKeys.log_sanidade.maxUptime)));
-
-    //SerialDebug.println("Uptime roll: " + String(localKeys.log_sanidade.uptime_rollMilli));
-    //SerialDebug.println("Uptime milli: " + String(localKeys.log_sanidade.uptime_milli));
-    //SerialDebug.println("MaxUpTime: " + String((uint32_t)localKeys.log_sanidade.maxuptime));
-    // SerialDebug.println("ptLeitABNT Urgente: " + String((uint8_t)sanidade_debug.ptLeituraABNTUrgente));
-    // SerialDebug.println("ptEscrABNT Urgente: " + String((uint8_t)sanidade_debug.ptEscritaABNTUrgente));
-    // SerialDebug.println("ptLeitABNT: " + String((uint8_t)sanidade_debug.ptLeituraABNT));
-    // SerialDebug.println("ptEscrABNT: " + String((uint8_t)sanidade_debug.ptEscritaABNT));
-    // SerialDebug.println("ptLeitLoRa: " + String((uint8_t)sanidade_debug.ptLeituraLoRa));
-    // SerialDebug.println("ptEscrLoRa: " + String((uint8_t)sanidade_debug.ptEscritaLoRa));
     SerialDebug.println("\r\n------- Fim do Log de sanidade -------");
 }
 
@@ -291,7 +307,6 @@ void loop()
     //SerialDebug.println("St: " + String(sinalizaStatus) +
     //                 " Serial = " + String(portaSerial.interface));
     delay(50);
-    atualizaUptime(); // <----- Manter apenas 1x / dia
     Watchdog.reset();
 } //loop()
 
@@ -356,6 +371,9 @@ void trataRespABNT(void)
             ansi_tab3.corrente_a = (respLeGrandInst->corrente_a) * (1 << 14);
             ansi_tab3.corrente_b = (respLeGrandInst->corrente_b) * (1 << 14);
             ansi_tab3.corrente_c = (respLeGrandInst->corrente_c) * (1 << 14);
+
+            verificaUptime();
+            ansi_tab3.logSanidade = localKeys.log_sanidade;
 
             if (!relogioValido)
             {
@@ -961,8 +979,6 @@ void gravaSessaoLoRa(void)
 ************************************************************************/
 bool protocoloComissionamento(void)
 {
-    //piscaLed(5, 150, 150);
-
     char comando[40];
     bool recebido = false;
 
@@ -979,7 +995,7 @@ bool protocoloComissionamento(void)
 
     SerialUSB.println("Envie os comandos AQUI !!!\r\n\r\nEx.\r\n"
                        "appeui=[valor]\r\nappkey=[valor]\r\n");
-    SerialDebug.println("Porta de debug ...\r\n Nao preparada para "
+    SerialDebug.println("Porta de debug ...\r\nNao preparada para "
                          "receber comandos");
 
     if (!modem.begin(AU915))
@@ -993,7 +1009,8 @@ bool protocoloComissionamento(void)
 
     SerialDebug.flush();
     SerialUSB.flush();
-    piscaLed(3, 300, 50);
+    piscaLed(3, 300);
+    piscaLed(3, 100, 100);
     tStart = millis();
     while ((millis() - tStart) < T_COMANDO)
     {
@@ -1035,7 +1052,7 @@ bool protocoloComissionamento(void)
                         SerialDebug.println("Msg: " + String(msgPrefix[0],
                                                              HEX));
                         SerialUSB.println("Msg: " + String(msgPrefix[0], HEX));
-                        piscaLed(2, 1000, 200);
+                        piscaLed(2, 600, 200);
                         SerialDebug.println("Comando nao implementado!");
                         SerialUSB.println("Comando nao implementado!");
                         //SerialUSB.readBytes(comando, 40);
@@ -1050,7 +1067,7 @@ bool protocoloComissionamento(void)
             }
         }
     }
-    piscaLed(3, 1500, 250);
+    piscaLed(3, 250, 50);
     SerialUSB.println("Tempo esgotado !!!");
     return (recebido);
 
@@ -1114,22 +1131,22 @@ void trataCausaRst(uint8_t rcause_lido)
     SerialDebug.println(rcause_lido, HEX);
     if (rcause_lido & PM_RCAUSE_SYST)
     {
-        localKeys.log_sanidade.cont_SWrst++;
+        localKeys.log_sanidade.contSWrst++;
         SerialDebug.println("\r\n\r\n ---> RESET por Software !!! <---\r\n");
     }
     else if (rcause_lido & PM_RCAUSE_WDT)
     {
-        localKeys.log_sanidade.cont_WDT++;
+        localKeys.log_sanidade.contWDT++;
         SerialDebug.println("\r\n\r\n ---> RESET por WDT !!! <---\r\n");
     }
     else if (rcause_lido & PM_RCAUSE_EXT)
     {
-        localKeys.log_sanidade.cont_EXTrst++;
+        localKeys.log_sanidade.contEXTrst++;
         SerialDebug.println("\r\n\r\n ---> RESET Externo !!! <---\r\n");
     }
     else if (rcause_lido & PM_RCAUSE_POR)
     {
-        localKeys.log_sanidade.cont_POR++;
+        localKeys.log_sanidade.contPOR++;
         SerialDebug.println("\r\n\r\n ---> RESET por POR !!! <---\r\n");
     }
     else
@@ -1287,7 +1304,8 @@ void trataSinalizacaoOpNormal()
     }
 } //trataSinalizacaoOpNormal(
 
-#endif //TESTE_INTEGRACAO
+
+#endif //FW_ENDDEVICE
 
 ///////////////////////////////////////////////////////////////
 //-----------------------------------------------------------//

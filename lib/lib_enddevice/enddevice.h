@@ -25,7 +25,9 @@
 //#define SEMLORA
 #define DEBUG_SERIAL3
 #define DEBUG_LORA
-#define TESTE_INTEGRACAO
+
+//Versao final, completa
+#define FW_ENDDEVICE
 
 //#define TESTE_JOIN
 //#define TEST_TERMINAL_AT
@@ -41,8 +43,8 @@
 //#define SECRET_APP_KEY "7818c354f78b690d30145963e87b2938" //Chave para o EUI: a8610a3432266f05 (servidor interno LoRaServer)
 //#define SECRET_APP_KEY "27ca801eadbd2b30b52c64581b4b37a4" // chave para o EUI: a8610a3039476906 (placa com interface debugger ATMEL-ICE)
 //#define SECRET_APP_KEY "c11b6c1d71a26eca4dbb1cf7e0722882" // chave para o EUI: a8610a303923750b (placa nao montada na placa mae)
-//#define SECRET_APP_KEY "f4092d86e075ad28fc6c04e0973e8d4d"    //end device 0115
-#define SECRET_APP_KEY "2ca6c21ec44c45984ee111534f5f355c"    //end device 0105
+//#define SECRET_APP_KEY "f4092d86e075ad28fc6c04e0973e8d4d" //end device 0115
+#define SECRET_APP_KEY "2ca6c21ec44c45984ee111534f5f355c"   //end device 0105
 
 #define ABP_DEVADDR     "000f780f" //"0039561c"
 #define ABP_NWKSKEY     "8105c97abfe43b24f378376f7a1b8132"  //"a7cfa33b3d57d5524eefa45582d69915"
@@ -86,32 +88,26 @@
 
 typedef struct sanidade
 {
-    uint8_t     cont_POR;               // 0
-    uint8_t     cont_SWrst;             // 1
-    uint8_t     cont_WDT;               // 2
-    uint8_t     cont_EXTrst;            // 3
-    uint8_t     cont_StOvflw;           // 4
-    uint16_t    cont_up;                // 5 - 6
-    uint16_t    cont_dw;                // 7 - 8
+    uint8_t     contPOR;               // 0
+    uint8_t     contSWrst;             // 1
+    uint8_t     contWDT;               // 2
+    uint8_t     contEXTrst;            // 3
+    uint16_t    contUp;                // 4 - 5
+    uint16_t    contDw;                // 6 - 7
+    uint64_t    curUptime :40;          // 8 - 12
+    uint64_t    maxUptime :40;          //13 - 17
+} __attribute__ ((packed)) sanidade_t;  // TOTAL: 18 bytes
 
-
-    uint64_t    maxUptime :40;
-} __attribute__ ((packed)) sanidade_t;
-
-    //------
 typedef struct sanidade_local
 {
-    uint8_t     uptime_rollMilli;       // 9
-    // uint32_t    uptime_milli;        // 10 - 13
-    uint64_t    currUptime :40;
-    // uint64_t    maxuptime :40;       // 14 - 18
-    uint64_t    ptLeituraABNT :5;       // 19
-    uint64_t    ptEscritaABNT :5;       // 19 - 20
-    uint64_t    ptLeituraLoRa :5;       // 20
-    uint64_t    ptEscritaLoRa :5;       // 20 - 21
-    uint16_t    ptLeituraABNTUrgente: 5;// 22
-    uint16_t    ptEscritaABNTUrgente: 5;// 22 - 23
-
+    uint8_t     uptimeRollMilli;
+    uint32_t    lastMillis;
+    uint32_t    ptLeituraABNT :5;
+    uint32_t    ptEscritaABNT :5;
+    uint32_t    ptLeituraLoRa :5;
+    uint32_t    ptEscritaLoRa :5;
+    uint32_t    ptLeituraABNTUrgente: 5;
+    uint32_t    ptEscritaABNTUrgente: 5;
 } __attribute__ ((packed)) sanidade_local_t;
 
 typedef struct secret_keys
@@ -123,9 +119,7 @@ typedef struct secret_keys
     uint8_t     intervalo;
     uint32_t    numSerieMedidor;
     uint16_t    modeloMedidor;
-    //----- LOGs DE SANIDADE ---
     sanidade_t  log_sanidade;
-    //--------------------------
     char        appeui[17];
     char        appkey[33];
     char        appskey[33];

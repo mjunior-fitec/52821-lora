@@ -56,8 +56,6 @@ typedef union postoHor {
 typedef struct alarmes
 {
     uint32_t falha_comunicacao: 1;
-    uint32_t senha_abnt: 1;
-    uint32_t medidor_bloq: 1;
     uint32_t relogio_medidor: 1;
     uint32_t relogio_dispositivo: 1;
     uint32_t temperatura_dev: 1;
@@ -65,6 +63,7 @@ typedef struct alarmes
     uint32_t aberura_principal: 1;
     uint32_t abertura_bloco: 1;
     uint32_t movimento: 1;
+    //--------- 8 bits -------------
     uint32_t i_sem_v: 1;
     uint32_t potencia_reversa: 1;
     uint32_t vcarga_corte: 1;
@@ -73,12 +72,16 @@ typedef struct alarmes
     uint32_t subtensao: 1;
     uint32_t vmax: 1;
     uint32_t vmin: 1;
+    //--------- 16 bits -------------
     uint32_t sobrecorrente: 1;
     uint32_t imin: 1;
     uint32_t ineutro: 1;
     uint32_t fator_pot: 1;
     uint32_t i_reversa: 1;
     uint32_t bateria_baixa: 1;
+    uint32_t senha_abnt: 1;
+    uint32_t medidor_bloq: 1;
+    //--------- 24 bits -------------
     uint32_t :0; //garante um novo uint32
     uint32_t reservado;
 } __attribute__ ((packed)) alarmes_t;
@@ -154,8 +157,9 @@ typedef struct tabela03
     uint32_t    corrente_c: 24;
     uint16_t    drp;
     uint16_t    drc;
+    sanidade_t  logSanidade;
 } __attribute__ ((packed)) tabela03_t;
-#define SIZE_TABELA3    26
+#define SIZE_TABELA3    44
 
 typedef struct tabela04
 {
@@ -193,7 +197,7 @@ typedef struct tabela06
     uint16_t demReativaCapFora;
     uint16_t demReativaCapReserv;
 } __attribute__ ((packed)) tabela06_t;
-#define SIZE_TABELA6    34
+#define SIZE_TABELA6    30
 
 typedef struct tabela07
 {
@@ -239,10 +243,12 @@ typedef struct tabela12
 {
     uint8_t corteReliga;
     uint8_t intervalo;
+    uint8_t limpaLogSanidade;
     uint8_t solicitaTabela[9];
     uint8_t senhaABNT[10];
 } __attribute__ ((packed)) tabela12_t;
-#define SIZE_TABELA12   21
+#define SIZE_TABELA12   22
+#define SIZE_TABELA12_SEM_SOLICITACAO   3
 
 typedef struct tabelasAnsi
 {

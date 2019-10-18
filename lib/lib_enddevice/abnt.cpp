@@ -980,10 +980,10 @@ uint8_t buscaCmdABNT(void)
     bloqPtABNT = false; //Libera acesso a lista
 
     // //--- log de sanidade
-    // localKeys.log_sanidade.ptEscritaABNT = ptEscritaCmd;
-    // localKeys.log_sanidade.ptLeituraABNT = ptLeituraCmd;
-    // localKeys.log_sanidade.ptEscritaABNTUrgente = ptEscritaCmdUrgent;
-    // localKeys.log_sanidade.ptLeituraABNTUrgente = ptLeituraCmdUrgent;
+    logSanidadeLocal.ptEscritaABNT = ptEscritaCmd;
+    logSanidadeLocal.ptLeituraABNT = ptLeituraCmd;
+    logSanidadeLocal.ptEscritaABNTUrgente = ptEscritaCmdUrgent;
+    logSanidadeLocal.ptLeituraABNTUrgente = ptLeituraCmdUrgent;
     return ret;
 } //buscaCmdABNT(
 

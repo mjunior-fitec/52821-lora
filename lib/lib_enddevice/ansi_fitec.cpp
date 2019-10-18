@@ -123,18 +123,20 @@ void ansiFitecInit(void)
 * Esta funcao recebe o codigo de uma tabela ANSI FITec e a inclui na lista de
 * tabelas que serao enviadas via LoRa no proximo instante de envio
 *
-* @param[in] IdTabela Numero da tabela a ser inserida na lista
+* @param[in] idTabela Numero da tabela a ser inserida na lista
 * @return true caso a tabela seja inserida corretamente, false em caso de erro
 *
 ************************************************************************/
-bool insereTabelaANSI(uint8_t IdTabela, uint8_t tam)
+bool insereTabelaANSI(uint8_t idTabela, uint8_t tam)
 {
+    if (idTabela < TAB_ANSI01 || idTabela > TAB_ANSI09)
+        return false;       //Tabela inexistente
     if (LISTA_NEXT_PT(ptEscritaTabela) == LISTA_PT(ptLeituraTabela))
         return false;       //lista cheia
 
     bloqPtANSI = true; //Bloqueia acesso a lista para evitar inconsistencia
     itemListaTabAnsi_t rec;
-    rec.idTabela = IdTabela;
+    rec.idTabela = idTabela;
     rec.tamEspecial = tam;
     listaTabelasAEnviar[LISTA_INC_PT(ptEscritaTabela)] = rec;
     bloqPtANSI = false; //Libera acesso a lista
@@ -299,7 +301,7 @@ void loRaSend(uint8_t *msg, uint8_t tam, bool ack)
         piscaLed(2, 350, 100);
    #ifdef DEBUG_LORA
         SerialDebug.println("Envio LoRa !!! \tTab: " + String(tabelaAtual + 1)); //+1 pq foi ajustada pra usar como indice
-        localKeys.log_sanidade.cont_up++;
+        localKeys.log_sanidade.contUp++;
    #endif
     }
     else
@@ -312,7 +314,7 @@ void loRaSend(uint8_t *msg, uint8_t tam, bool ack)
 
         piscaLed(4, 200, 100);
     #ifdef DEBUG_LORA
-        SerialDebug.println("FALHA no envio!!!");
+        SerialDebug.println("FALHA no envio LoRa !\r\n\r\nReset modem...");
     #endif
 
     }
@@ -345,33 +347,32 @@ int trataDownLink(void)
             SerialDebug.print(" ");
         }
         SerialDebug.println();
-        localKeys.log_sanidade.cont_dw++;
+        localKeys.log_sanidade.contDw++;
 
         ///-----------------------------------------------------
         //#### Debug do log de sanidade
         //
-        logSanidadeLocal.currUptime = (((((uint64_t)logSanidadeLocal.uptime_rollMilli) << 32)
-                   + millis()) / 1000);
 
-        SerialDebug.println("\r\n-------------------------\r\nLog de sanidade:");
-        SerialDebug.println("POR: " + String(localKeys.log_sanidade.cont_POR));
-        SerialDebug.println("SW: " + String(localKeys.log_sanidade.cont_SWrst));
-        SerialDebug.println("WDT: " + String(localKeys.log_sanidade.cont_WDT));
-        SerialDebug.println("Ext: " + String(localKeys.log_sanidade.cont_EXTrst));
-        SerialDebug.println("Stk Ovf: " + String(localKeys.log_sanidade.cont_StOvflw));
-        SerialDebug.println("Uplinks: " + String(localKeys.log_sanidade.cont_up));
-        SerialDebug.println("Dwlinks: " + String(localKeys.log_sanidade.cont_dw));
-        //SerialDebug.println("Uptime roll: " + String(localKeys.log_sanidade.uptime_rollMilli));
-        SerialDebug.println("Uptime sec: " + String((uint8_t)logSanidadeLocal.currUptime));
-        SerialDebug.println("MaxUpTime: " + String((uint32_t)localKeys.log_sanidade.maxUptime));
-        // SerialDebug.println("ptLeitABNT Urgente: " + String((uint8_t)localKeys.log_sanidade.ptLeituraABNTUrgente));
-        // SerialDebug.println("ptEscrABNT Urgente: " + String((uint8_t)localKeys.log_sanidade.ptEscritaABNTUrgente));
-        // SerialDebug.println("ptLeitABNT: " + String((uint8_t)localKeys.log_sanidade.ptLeituraABNT));
-        // SerialDebug.println("ptEscrABNT: " + String((uint8_t)localKeys.log_sanidade.ptEscritaABNT));
-        // SerialDebug.println("ptLeitLoRa: " + String((uint8_t)localKeys.log_sanidade.ptLeituraLoRa));
-        // SerialDebug.println("ptEscrLoRa: " + String((uint8_t)localKeys.log_sanidade.ptEscritaLoRa));
+        verificaUptime();
+        SerialDebug.println("\r\nLog de sanidade:");
+        SerialDebug.println("POR: " + String(localKeys.log_sanidade.contPOR));
+        SerialDebug.println("SW: " + String(localKeys.log_sanidade.contSWrst));
+        SerialDebug.println("WDT: " + String(localKeys.log_sanidade.contWDT));
+        SerialDebug.println("Ext: " + String(localKeys.log_sanidade.contEXTrst));
+        SerialDebug.println("Uplinks: " + String(localKeys.log_sanidade.contUp));
+        SerialDebug.println("Dwlinks: " + String(localKeys.log_sanidade.contDw));
+        SerialDebug.println("Uptime sec: " + String((uint32_t)(localKeys.log_sanidade.curUptime)));
+        SerialDebug.println("MaxUptime sec: " + String((uint32_t)(localKeys.log_sanidade.maxUptime)));
+        SerialDebug.println("\r\n---- LOCAL: ----");
+        SerialDebug.println("Uptime roll: " + String(logSanidadeLocal.uptimeRollMilli));
+        SerialDebug.println("ptLeitABNT Urgente: " + String((uint8_t)logSanidadeLocal.ptLeituraABNTUrgente));
+        SerialDebug.println("ptEscrABNT Urgente: " + String((uint8_t)logSanidadeLocal.ptEscritaABNTUrgente));
+        SerialDebug.println("ptLeitABNT: " + String((uint8_t)logSanidadeLocal.ptLeituraABNT));
+        SerialDebug.println("ptEscrABNT: " + String((uint8_t)logSanidadeLocal.ptEscritaABNT));
+        SerialDebug.println("ptLeitLoRa: " + String((uint8_t)logSanidadeLocal.ptLeituraLoRa));
+        SerialDebug.println("ptEscrLoRa: " + String((uint8_t)logSanidadeLocal.ptEscritaLoRa));
+
         SerialDebug.println("\r\n------- Fim do Log de sanidade -------");
-        //------------------------------------------------------
 #endif
 
         switch (rcv[0])
@@ -499,17 +500,22 @@ int trataDownLink(void)
             tab12 = (tabela12_t *)(rcv + 4);
             if (rcv[4 + tam] != calcSum(rcv + 4, tam))
                 return -1;
+
             programacaoCorteReliga = tab12->corteReliga;
             if (tab12->intervalo && (localKeys.intervalo != tab12->intervalo))
             {
                 novoIntervaloLoRa = tab12->intervalo;
             }
-            if (tam > 2)
+            if (tam > SIZE_TABELA12_SEM_SOLICITACAO)
             {
-                for (uint8_t i_tab = 0; i_tab < (tam - 2); ++i_tab)
+                for (uint8_t i_tab = 0; i_tab < (tam - SIZE_TABELA12_SEM_SOLICITACAO);
+                    ++i_tab)
                 {
                     if (tab12->solicitaTabela[i_tab])
-                        insereTabelaANSI(tab12->solicitaTabela[i_tab]);
+                    {
+                        if (!insereTabelaANSI(tab12->solicitaTabela[i_tab]))
+                            return -1;
+                    }
                     else
                         break;
                 }
@@ -561,7 +567,7 @@ uint8_t calcSum(uint8_t *buffer, size_t bufSize)
 {
     uint8_t sum = 0;
     for (size_t i = 0; i < bufSize; ++i)
-        sum += buffer[i];
+        sum -= buffer[i];
 
-    return (~sum) + 1;
+    return (sum);
 } //calcSum(

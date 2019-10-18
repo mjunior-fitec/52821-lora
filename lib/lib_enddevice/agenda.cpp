@@ -56,17 +56,17 @@ void initAgenda(void)
     rtc.setDate(4, 4, 19);
     rtc.setTime(23, 59, 50); //Incializacao manual do RTC
 
-    #ifdef DEBUG_AGENDA
+   #ifdef DEBUG_AGENDA
     SerialDebug.println("bfr MontaAgenda");
     SerialDebug.flush();
-    #endif
+   #endif
     montaAgenda();
     itemAtual = listaAgenda;
-    #ifdef DEBUG_AGENDA
+   #ifdef DEBUG_AGENDA
     SerialDebug.println("\r\nFim MontaAgenda!\r\n");
     SerialDebug.flush();
     imprimeAgenda();
-    #endif
+   #endif
 } //initAgenda(
 
 /**
@@ -80,27 +80,27 @@ void initAgenda(void)
 ***************************************************************************/
 void montaAgenda(void)
 {
-    #ifdef DEBUG_AGENDA
+   #ifdef DEBUG_AGENDA
     SerialDebug.println("\r\nmontaAgenda! ");
     SerialDebug.flush();
-    #endif
+   #endif
     limpaLista(listaAgenda);
     listaAgenda = nullptr;
 
-    #ifdef DEBUG_AGENDA
+   #ifdef DEBUG_AGENDA
     SerialDebug.println("\r\nlistaAgenda ja eh NULL... ");
     SerialDebug.flush();
-    #endif
+   #endif
 
     uint8_t nEventosFreqLoRa = (24 / intervaloLoRa);
     itemAgenda_t * novoItem;
 
     uint32_t intervaloLoRaSeg = intervaloLoRa * NUM_SEG_HORA;
 
-    #ifdef DEBUG_AGENDA
+   #ifdef DEBUG_AGENDA
     SerialDebug.println("\r\nintervaloLora seg = " + String(intervaloLoRaSeg));
     SerialDebug.flush();
-    #endif
+   #endif
 
     //Pacotes frequentes LoRa
     for (uint8_t n = 0; n < nEventosFreqLoRa; ++n)
@@ -110,10 +110,10 @@ void montaAgenda(void)
         insereAgenda(&listaAgenda, novoItem);
     }
 
-    #ifdef DEBUG_AGENDA
+   #ifdef DEBUG_AGENDA
     SerialDebug.println("\r\nCriados " + String(nEventosFreqLoRa) + " eventos LoRa freq\r\n");
     SerialDebug.flush();
-    #endif
+   #endif
 
     //Pacotes eventuais LoRa
     novoItem = criaItemAgenda((t0_LoRa + OFFSET_LORA_EVENTUAL)% \
@@ -128,20 +128,20 @@ void montaAgenda(void)
         insereAgenda(&listaAgenda, novoItem);
     }
 
-    #ifdef DEBUG_AGENDA
+   #ifdef DEBUG_AGENDA
     SerialDebug.println("\r\nCriados 24 eventos ABNT freq\r\n");
     SerialDebug.flush();
-    #endif
+   #endif
 
     //Envio de comandos ABNT diario
     novoItem = criaItemAgenda((t0_ABNT + OFFSET_ABNT_EVENTUAL)% \
                                NUM_SEG_DIA, preparaABNTEventual);
     insereAgenda(&listaAgenda, novoItem);
 
-    //Atualizacao do uptime, verificando o estouro de millis()
+    //Atualizacao do MaxUptime,
     // 1x / dia, 2 minutos depois do ABNT eventual
     novoItem = criaItemAgenda((t0_ABNT + OFFSET_ABNT_EVENTUAL + 120)% \
-                               NUM_SEG_DIA, atualizaUptime);
+                               NUM_SEG_DIA, atualizaMaxUptime);
     insereAgenda(&listaAgenda, novoItem);
 
     #ifdef DEBUG_AGENDA
@@ -404,15 +404,12 @@ void limpaLista(itemAgenda_t * head)
     #endif
     while (head != nullptr)
     {
-       #ifdef DEBUG_AGENDA
-       SerialDebug.println("Here!");
-       SerialDebug.flush();
-       #endif
         tmp = head;
         head = head->next;
         free(tmp);
     }
 } //limpaLista(
+
 
 /**
 * @brief Funcao para atualizar o contador de uptime, verificando o estou de
@@ -427,18 +424,33 @@ void limpaLista(itemAgenda_t * head)
 * ciclo do contador de milissegundos (~49,7 dias).
 *
 ************************************************************************/
-void atualizaUptime(void){
-
-    static uint32_t currUptime, lastMillis;
+void verificaUptime(void)
+{
     auto currMillis = millis();
 
-    if (currMillis < lastMillis)
-    {
-        logSanidadeLocal.uptime_rollMilli++;
-    }
-    currUptime = (((uint64_t)(logSanidadeLocal.uptime_rollMilli << 32)
-                   + currMillis) / 1000);
-    if (currUptime > localKeys.log_sanidade.maxUptime)
-        localKeys.log_sanidade.maxUptime = currUptime;
+    if (currMillis < logSanidadeLocal.lastMillis)
+        logSanidadeLocal.uptimeRollMilli++;
 
-} //atualizaUptime(
+    logSanidadeLocal.lastMillis = currMillis;
+    localKeys.log_sanidade.curUptime = ( ((uint64_t)
+                (logSanidadeLocal.uptimeRollMilli << 32) + currMillis) / 1000);
+    if (localKeys.log_sanidade.curUptime > localKeys.log_sanidade.maxUptime)
+        localKeys.log_sanidade.maxUptime = localKeys.log_sanidade.curUptime;
+} //verificaUptime(
+
+
+/**
+* @brief Funcao para atualizar o contador de maxUptime, salvando se necessario
+*
+* Esta funcao verifica se o uptime atual eh o uptime maximo. Em caso positivo
+* soinaliza que deve salvar esta informacao atualizada em memoria nao volatil.
+*
+************************************************************************/
+void atualizaMaxUptime(void)
+{
+    //Programa proximo evento da agenda, pois esta funcao sera uma ISR
+    programaAlarmeAgenda();
+    if (localKeys.log_sanidade.maxUptime >= localKeys.log_sanidade.curUptime)
+        salvarNaoVolatil = true;
+
+} //atualizaMaxUptime(
