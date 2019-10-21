@@ -112,20 +112,20 @@ typedef struct sanidade_local
 
 typedef struct secret_keys
 {
-    uint8_t     comissionado;
-    uint8_t     sessao_ok;
-    uint8_t     senhaABNT_ok;
-    uint32_t    seed;
-    uint8_t     intervalo;
-    uint32_t    numSerieMedidor;
-    uint16_t    modeloMedidor;
-    sanidade_t  log_sanidade;
-    char        appeui[17];
-    char        appkey[33];
-    char        appskey[33];
-    char        nwkskey[33];
-    char        devaddr[9];
-    uint8_t     senhaABNT[10];
+    uint8_t     comissionado;    //!< Indica se o end device ja foi comissionado
+    uint8_t     sessao_ok;       //!< Indica se existe uma sessao LoRa validada
+    uint8_t     senhaABNT_ok;    //!< Indica se existe seha ABNT programada
+    uint32_t    seed;            //!< Semente para geracao da lista da agenda
+    uint8_t     intervalo;       //!< Intervalo (em horas) do envio frequente
+    uint32_t    numSerieMedidor; //!< Num de serie lido do medidor
+    uint16_t    modeloMedidor;   //!< Modelo lido do medidor
+    sanidade_t  log_sanidade;    //!< Log de sanidade do end device
+    char        appeui[17];      //!< Application EUI para join OTAA
+    char        appkey[33];      //!< Application Key para join OTAA
+    char        appskey[33];     //!< Application session key para salvar sessao
+    char        nwkskey[33];     //!< Network session key para salvar sessao
+    char        devaddr[9];      //!< Device Address para salvar sessao
+    uint8_t     senhaABNT[10];   //!< Senha para abertura de sessao com medidor
 } __attribute__ ((packed)) secret_keys_t;
 
 extern secret_keys_t localKeys;

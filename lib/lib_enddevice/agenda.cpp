@@ -243,10 +243,10 @@ void iniciaAlarmes(void)
                                    rtc.getSeconds());
     itemAtual = listaAgenda;
 
-    #ifdef DEBUG_AGENDA
+   #ifdef DEBUG_AGENDA
     SerialDebug.println("\r\nhora atual: " + String(horaAtual) + "\r\n");
     SerialDebug.flush();
-    #endif
+   #endif
 
     while (itemAtual->tAgenda < (horaAtual + 2))
     {
@@ -260,10 +260,10 @@ void iniciaAlarmes(void)
         }
     }
 
-    #ifdef DEBUG_AGENDA
+   #ifdef DEBUG_AGENDA
     SerialDebug.println("\r\nPrim evento:" + String(itemAtual->tAgenda) +"\r\n");
     SerialDebug.flush();
-    #endif
+   #endif
 
     segundosParaHHMMSS(itemAtual->tAgenda, &horaAlarme, &minAlarme, &segAlarme);
     rtc.setAlarmTime(horaAlarme, minAlarme, segAlarme);
@@ -280,6 +280,8 @@ void iniciaAlarmes(void)
 *
 * Esta funcao atualiza a variavel global itemAtual com o proximo evento
 * da lista. Ao chegar no ultimo evento do dia avanca para o primeiro.
+* Esta funcao deve ser chamada ao se atender uma interrupcao de alarme,
+* pois ela 'consome' um item da lista de alarmes
 ************************************************************************/
 void programaAlarmeAgenda(void)
 {
